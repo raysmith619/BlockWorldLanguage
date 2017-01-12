@@ -1,0 +1,7 @@
+// test2_multiline.bwif
+set blockSizeX = 1;
+set blockSizeY = 2;
+set blockSizeZ = 3;
+add block color=1,0,0 loc=-12,-2,-2
+	 size=blockSizeX,blockSizeY,blockSizeZ;
+display;

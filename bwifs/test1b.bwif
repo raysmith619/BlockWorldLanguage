@@ -1,0 +1,5 @@
+add window size=900,900;
+add lookatEye loc=10,10,10;
+add lookatcenter loc=0;
+add lookatup loc=0,1,0;
+

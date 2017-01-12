@@ -1,0 +1,16 @@
+// test_slider.bwif - simple display with variables using BwSlider
+slider(winH, 0, 900, 2000);
+slider(winW, 0, 1400, 2000);
+add window size=winW,winH;
+
+slider(blockAtX, -20, -12,20);
+slider(blockAtY, -20, -2, 20);
+slider(blockAtZ, -20, -2, 20);
+
+slider(blockSizeX, 1, 10);
+slider(blockSizeY, 2, 10);
+slider(blockSizeZ, 3, 10);
+ 
+add block color=0,0,1 loc=blockAtX,blockAtY,blockAtZ
+		 size=blockSizeX, blockSizeY, blockSizeZ;
+display;

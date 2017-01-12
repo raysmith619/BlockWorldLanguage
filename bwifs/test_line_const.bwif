@@ -1,0 +1,9 @@
+// test_line_const.bwif - simple display with line
+slider(winH, 0, 900, 2000);
+slider(winW, 0, 1400, 2000);
+add window size=winW,winH;
+add line color=(0,1,0)
+	pt=-1,-1,-1
+	pt=1,1,1
+	;
+display;

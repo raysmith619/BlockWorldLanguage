@@ -1,0 +1,13 @@
+// test_line_axis.bwif - simple display with line
+slider(winH, 0, 900, 2000);
+slider(winW, 0, 1400, 2000);
+add window size=winW,winH;
+add line color=(1,1,1)	pt=0	pt=10,0,0;
+add line color=(1,1,1)	pt=0	pt=0,10,0;
+add line color=(1,1,1)	pt=0	pt=0,0,10;
+set gystart = 2;
+add line color=(0,1,1)	pt=0,1,0	pt=10,0,0;
+add line color=(1,0,0)	pt=2,3,4	pt=0,10,0;
+//add line color=(0,1,0)	pt=(1,gystart,3)	pt=0,10,0;
+add line color=(0,1,0)	pt=(1,2,3)	pt=0,10,0;
+display;
