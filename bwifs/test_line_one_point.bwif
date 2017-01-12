@@ -1,0 +1,24 @@
+// test_line_one_point.bwif - simple display with line
+slider(winH, 0, 900, 2000);
+slider(winW, 0, 1400, 2000);
+add window size=winW,winH;
+
+
+slider(l1X, 1, 10);
+slider(l1Y, 2, 10);
+slider(l1Z, 3, 10);
+
+slider(l2X, 4, 10);
+slider(l2Y, 5, 10);
+slider(l2Z, 6, 10);
+
+slider(l1X, 7, 10);
+slider(l1Y, 8, 10);
+slider(l1Z, 9, 10);
+
+slider(colorRed,0,0,1);
+slider(colorGreen,0,1,1);
+slider(colorBlue,0,0,1); 
+add line color=(colorRed,colorGreen, colorBlue)
+	pt=l3x,l3y,l3z;
+display;

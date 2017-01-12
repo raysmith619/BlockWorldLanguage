@@ -1,0 +1,4 @@
+// Include variables - ck evaluation short
+set height = 900;
+set wid = 800;
+add window size=height,wid;

@@ -1,0 +1,18 @@
+// test_multiple_lines.bwif - simple display with line
+// Add lineSpec with width
+slider(winH, 0, 900, 2000);
+slider(winW, 0, 1400, 2000);
+add window size=winW,winH;
+add axis;
+
+add line color=(1,0,0) pt=(0,0,1) pt=(1,0,1) lines=6;
+add line color=(0,1,0)	pt=(1,0,1) pt=(1,1,1) lines=12;
+add line color=(0,0,1) pt=(1,1,1) pt=(0,1,1); lines=18;
+add line color=(1,1,0) pt=(0,1,1) pt=(0,0,1); lines=18;
+
+add line color=(1,0,0) pt=(0,0,0) pt=(1,0,0) lines=6;
+add line color=(0,1,0)	pt=(1,0,0) pt=(1,1,0) lines=12;
+add line color=(0,0,1) pt=(1,1,0) pt=(0,1,0); lines=18;
+add line color=(1,1,0) pt=(0,1,0) pt=(0,0,0); lines=18;
+
+display;

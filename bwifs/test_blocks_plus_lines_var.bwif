@@ -1,0 +1,35 @@
+// test_multiple_blocks.bwif - simple display with line
+slider(winH, 0, 900, 2000);
+slider(winW, 0, 1400, 2000);
+add window size=winW,winH;
+
+//set px=0;set py=px; set pz=px;
+//set px=1;set py=px; set pz=px;
+//set px=2;set py=px; set pz=px;
+set px=2;
+set py=3;
+set pz=5;
+//set px=0;set py=2; set pz=4;
+//set px=.5;set py=1; set pz=1.5;
+add block color=(1,0,0) loc=(px,py,pz) size=.1;
+
+add block color=(0,1,0)	          loc=(1,0,0) size=.05;
+add line color=(0,1,0)  pt=(px,py,pz) pt=(1,0,0);
+
+add block color=(0,0,1)            loc=(1,1,0) size=.05;
+add line  color=(0,0,1) pt=(px,py,pz)  pt=(1,1,0);
+
+add block color=(1,1,0)            loc=(0,1,0) size=.05;
+add line  color=(1,1,0) pt=(px,py,pz)  pt=(0,1,0);
+
+add block color=(0,1,1)            loc=(-1,-2,-3) size=.05;
+add line  color=(0,1,1) pt=(px,py,pz)  pt=(-1,-2,-3);
+
+add block color=(1,1,1)            loc=(-3.5, -.5, 1) size=.05;
+add line color=(1,1,1) pt=(px,py,pz)  pt=(-3.5, -.5, 1);
+
+add block color=(1,0,1)            loc=(-.5,-1, 1) size=.05;
+add line color=(1,0,1) pt=(px,py,pz)  pt=(-.5,-1, 1);
+add axis;
+
+display;

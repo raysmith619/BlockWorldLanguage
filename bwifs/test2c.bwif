@@ -1,0 +1,5 @@
+// Include variables set a b c
+set leyex = 10;
+set leyey = leyex;
+set leyez = leyex;
+add lookatEye loc=1eyex,leyey,leyez;
