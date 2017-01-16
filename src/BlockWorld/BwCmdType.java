@@ -11,6 +11,8 @@ public enum BwCmdType {
 	DISPLAY_SCENE,		// Display sceen
 	ADD_OBJECT,			// Add object to list
 	DELETE_OBJECT,		// Delete object
+	INCLUDE_FILE,		// Include file
+	INCLUDE_FILE_END,	//  end of include file
 	MOVE_OBJECT,		// Move object
 	MODIFY_OBJECT,		// Modify object
 	QUIT_PROGRAM,		// Quit program

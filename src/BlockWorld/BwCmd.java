@@ -141,6 +141,10 @@ public class BwCmd {
 				return BwCmdType.LIST_CMD;
 			case "duplicate":
 				return BwCmdType.DUPLICATE_CMD;
+			case "include":
+				return BwCmdType.INCLUDE_FILE;
+			case "includeEnd":
+				return BwCmdType.INCLUDE_FILE_END;
 			case "noop":
 				return BwCmdType.NO_OP;
 			case "set":
@@ -169,6 +173,10 @@ public class BwCmd {
 				return "list";
 			case DUPLICATE_CMD:
 				return "duplicate";
+			case INCLUDE_FILE:
+				return "include";
+			case INCLUDE_FILE_END:
+				return "includeEnd";
 			case NO_OP:
 				return "noop";
 			case SET_CMD:
@@ -231,7 +239,15 @@ public class BwCmd {
 			if (str != "") str += " ";
 			str += "INCOMPLETE";
 		}
-		if (this.cmdType == BwCmdType.SET_CMD) {
+		if (this.cmdType == BwCmdType.INCLUDE_FILE) {
+			if (str != "") str += " ";
+			str += cmdName();
+			str += " " + this.getIncludeFile();
+		} else if (this.cmdType == BwCmdType.INCLUDE_FILE_END) {
+				if (str != "") str += " ";
+				str += cmdName();
+				str += " " + this.getIncludeFile();
+		} else if (this.cmdType == BwCmdType.SET_CMD) {
 			if (str != "") str += " ";
 			if (this.setCmdName) {
 				str += cmdName() + " ";		// Include "SET"
@@ -300,7 +316,15 @@ public class BwCmd {
 			if (str != "") str += " ";
 			str += "INCOMPLETE";
 		}
-		if (this.cmdType == BwCmdType.SET_CMD) {
+		if (this.cmdType == BwCmdType.INCLUDE_FILE) {
+			if (str != "") str += " ";
+			str += cmdName();
+			str += " " + this.getIncludeFile();
+		} else if (this.cmdType == BwCmdType.INCLUDE_FILE_END) {
+				if (str != "") str += " ";
+				str += cmdName();
+				str += " " + this.getIncludeFile();
+		} else if (this.cmdType == BwCmdType.SET_CMD) {
 			if (str != "") str += " ";
 			if (this.setCmdName) {
 				str += cmdName() + " ";		// Include "SET"
@@ -527,7 +551,24 @@ public class BwCmd {
 	public BwGraphic.Type getGraphicType() {
 		return graphicType;
 	}
+
 	
+	/**
+	 * @return the includeFile
+	 */
+	public String getIncludeFile() {
+		return includeFile;
+	}
+
+	/**
+	 * @param includeFile the includeFile to set
+	 */
+	public void setIncludeFile(String includeFile) {
+		this.includeFile = includeFile;
+	}
+
+
+
 	
 	private boolean processed;				// Processed (e.g. added to display)
 	private boolean error;
@@ -544,6 +585,7 @@ public class BwCmd {
 	
 	private BwCmdType cmdType;				// Command
 	private boolean setCmdName = true;		// true - "SET" present in cmd
+	private String includeFile;				// Include file name
 	private String setVariableName;			// variable name for SET cmd
 	private BwValue setValue;				// value for SET cmd
 	private BwSliderSpec sliderSpec;

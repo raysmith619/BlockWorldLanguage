@@ -184,7 +184,7 @@ public class BwParser {
 			cmd.setSrcLineNo(this.tokenizer.srcLineNo());
 			cmd.setSrcLine(this.tokenizer.srcLine());
 			acceptProduction("include cmd");
-		} if (cmdNoOp(cmd)) {
+		} else if (cmdNoOp(cmd)) {
 			cmd.setSrcFileName(this.tokenizer.srcFileName());
 			cmd.setSrcLineNo(this.tokenizer.srcLineNo());
 			cmd.setSrcLine(this.tokenizer.srcLine());
@@ -229,6 +229,8 @@ public class BwParser {
 		cmd.setComplete();
 		if (trace.traceInput()) {
 			System.out.printf("%s\n", cmd.toStringExtended());
+			if (cmd.getCmd_type() == BwCmdType.INCLUDE_FILE_END)
+				System.out.printf("\n");
 		}
 		return true;
 	}
@@ -236,8 +238,10 @@ public class BwParser {
 /**
  * implement include file facility
  * by inserting commands into the stream
+ * Terminating ";" is optional
+ * @throws BwException 
  */
-	boolean cmdInclude(BwCmd cmd) {
+	boolean cmdInclude(BwCmd cmd) throws BwException {
 		markState("cmd:= include filename" );
 		if (!tokenType("include")) {
 			backupState();
@@ -249,7 +253,31 @@ public class BwParser {
 			return true;
 		}
 		matchProduction();
-		String incl_file = this.tokenizer.sval;
+
+		String incl_file = this.tokenizer.tokenStr();
+					/**
+					 * Mark beginning of include
+					 */
+		BwCmd cmd_start = new BwCmd(BwCmdType.INCLUDE_FILE);
+		cmd_start.setIncludeFile(incl_file);
+		cmd_start.setComplete();
+		if (trace.traceInput()) {
+			System.out.printf("%s\n\n", cmd_start.toStringExtended());
+		}
+		bCmds.addCmd(cmd_start);
+
+						/**
+						 * Mark end of include
+						 */
+		cmd.setCmdType(BwCmdType.INCLUDE_FILE_END);
+		cmd.setIncludeFile(incl_file);
+		
+		Path pathck = Paths.get(incl_file);
+		if (!pathck.isAbsolute()) {
+			Path pathinc = Paths.get("bwifs", incl_file);
+			String fileinc = pathinc.toString();
+			incl_file = fileinc;
+		}
 		
 		BwParser inc_parser =
 				new BwParser(this.trace, this.bCmds);
@@ -258,6 +286,13 @@ public class BwParser {
 					String.format("include file %s"
 					+ " parsing error", incl_file));
 			return true;
+		}
+						/**
+						 * trailing ";" is optional to
+						 * look like C preprocessor include statement
+						 */
+		if (tokenType(";")) {
+						// Ignored
 		}
 		return true;	// accept even if file error
 	}
@@ -531,7 +566,7 @@ public class BwParser {
 	boolean stringConstant(BwValue value) throws BwException {
 		markState("stringConst");
 		if ((tokenType('"') || tokenType("'"))) {
-			value.setValue(this.tokenizer.sval);
+			value.setValue(this.tokenizer.tokenStr());
 			matchProduction("stringConst");
 			return true;
 		}

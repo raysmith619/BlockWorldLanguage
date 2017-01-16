@@ -47,7 +47,7 @@ public class BwDisplay extends JFrame implements MouseListener{
 	    Canvas3D canvas = new Canvas3D(config);
 		add(BorderLayout.CENTER, canvas);
 		this.universe = new SimpleUniverse(canvas);
-		setDisplayWindowSize();
+		setDisplayWindowSize(1400, 900);
 		setTitle("Getting Ready");
 		setVisible(true);
 		this.rootGroup = new BranchGroup();
@@ -132,6 +132,12 @@ public class BwDisplay extends JFrame implements MouseListener{
 				break;
 				
 			case MOVE_OBJECT:		// Move object
+				break;
+			
+			case INCLUDE_FILE:		// Include file (compile directive)
+				break;
+				
+			case INCLUDE_FILE_END:	// Include file (compile directive)
 				break;
 				
 			case MODIFY_OBJECT:		// Modify object

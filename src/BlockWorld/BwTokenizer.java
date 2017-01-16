@@ -206,10 +206,19 @@ public class BwTokenizer {
 		if (!silent)
 			if (trace.traceToken())
 				System.out.println("TOKEN: " + token);
+		this.tokenCk = token;		// Save for tokenType post access
 		return token;
 	}
 
-	
+	/**
+	 * Access to most recently parsed token
+	 */
+	public String tokenStr() {
+		if (this.tokenCk == null)
+			return "";
+		
+		return this.tokenCk.str;
+	}
 	/**
 	 * Get next token(s) from file
 	 */
@@ -615,8 +624,9 @@ public class BwTokenizer {
 	private Stack<BwToken> tokStack;
 	private StreamTokenizer st;			// Tokenizer
 	private StringReader sr;			// String Reader for tokenizer
-	public String sval;					// Token String value
-	public double nval;					// Token Numeric value
+	//public String sval;					// Token String value
+	//public double nval;					// Token Numeric value
+	private BwToken tokenCk;			// Most recently processed token
 	
 	
 	/**
@@ -650,10 +660,10 @@ public class BwTokenizer {
 	                  System.out.println("End of Line encountered.");
 	                  break;
 	               case StreamTokenizer.TT_WORD:
-	                  System.out.println("Word: " + st.sval);
+	                  System.out.println("Word: " + token.str);
 	                  break;
 	               case StreamTokenizer.TT_NUMBER:
-	                  System.out.println("Number: " + st.nval);
+	                  System.out.println("Number: " + token.number);
 	                  break;
 	               default:
 	                  System.out.println((char) token_type + " encountered.");

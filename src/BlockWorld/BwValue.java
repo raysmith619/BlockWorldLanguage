@@ -47,12 +47,7 @@ public class BwValue {
 	 */
 	public BwValue(BwValue value) throws BwException {
 		this();
-		this.setType(value.getType());
-		if (value.type == BwValueType.VARIABLE) {
-			this.setVariable(value.varName());
-		} else if (value.type == BwValueType.CONSTANT) {
-			this.setValue(value);
-		}
+		setValue(value);
 	}
 	
 	/**
@@ -126,7 +121,7 @@ public class BwValue {
 	 * set from parameter
 	 */
 	public void setValue(float value) {
-		this.type = BwValueType.VARIABLE;
+		this.dataType = BwDataType.FLOAT;
 		this.value = value;
 	}
 
@@ -172,9 +167,7 @@ public class BwValue {
 	 * @return
 	 */
 	public String toStringEval()  throws BwException {
-		if (this.type == BwValueType.CONSTANT) {
-			return fmt(this.value);
-		}
+		BwValue value = this;
 		if (this.type == BwValueType.VARIABLE) {
 			String var_name = this.variableName;
 			if (var_name == null) {
@@ -184,10 +177,16 @@ public class BwValue {
 			if (!parser.inTable(var_name)) {
 				return "UNDEFINED";
 			}
-			float value = parser.getValue(this.variableName);
-			return fmt(value);
+			
+			value = this.parser.getValueObject(this.variableName);
 		}
-		return "UNDEFINED";
+		if (value.dataType == BwDataType.FLOAT) {
+			return fmt(value.floatValue());
+		} else if (value.dataType == BwDataType.STRING) {
+			return value.stringValue();
+		}
+		error("Unrecognized dataType");
+		return "UNRECOGNIZED";
 	}
 
 	/**

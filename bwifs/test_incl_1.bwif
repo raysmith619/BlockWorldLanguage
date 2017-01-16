@@ -1,0 +1,5 @@
+//test_incl_1.bwif
+add block loc=1,0,1 size=.3 color=0,1,0;
+include "test_incl_1_1.bwif";
+include "test_incl_1_2.bwif";
+add block loc=1,0,2 size=.3 color=0,1,0;
