@@ -1,0 +1,9 @@
+// test_slider1.bwif
+//   Simple slider debugging file
+//   
+slider(tsize,0,1,10);
+add block size=tsize,tsize,tsize loc=0,0,0 color=0,1,0;
+
+display;
+
+

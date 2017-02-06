@@ -1,0 +1,26 @@
+// test_line.bwif - simple display with line
+slider(winH, 0, 900, 2000);
+slider(winW, 0, 1400, 2000);
+add window size=winW,winH;
+
+
+slider(l1X, 0, 10);
+slider(l1Y, 0, 10);
+slider(l1Z, 0, 10);
+
+slider(l2X, 2, 10);
+slider(l2Y, 3, 10);
+slider(l2Z, 4, 10);
+
+slider(l1X, -10, 3, 10);
+slider(l1Y, -10, 4, 10);
+slider(l1Z, -10, 5, 10);
+
+slider(colorRed,0,1,1);
+slider(colorGreen,0,1,1);
+slider(colorBlue,0,1,1); 
+add line color=(colorRed,colorGreen, colorBlue)
+	pt=l1X,l1Y,l1Z
+//	pt=l2x,l2y,l2z
+	pt=l3x,l3y,l3z;
+display;

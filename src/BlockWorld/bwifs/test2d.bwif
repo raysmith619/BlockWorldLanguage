@@ -1,0 +1,5 @@
+// test2d.bwif - Include variables addlookateye vars
+set leyex = 10;
+set leyey = leyex;
+set leyez = leyex;
+add lookatEye loc=1eyex,leyey,leyez;

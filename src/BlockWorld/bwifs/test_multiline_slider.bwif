@@ -1,0 +1,19 @@
+// test_multiline_slider.bwif - simple display with line
+slider(winH, 0, 900, 2000);
+slider(winW, 0, 1400, 2000);
+add window size=winW,winH;
+slider(xbeg,-5,0,5);
+slider(ybeg,-5,0,5);
+
+slider(xend,-5,3,5);
+slider(yend,-5,3,5);
+
+slider(cred,0,1,1);
+slider(cgreen,0,0,1);
+slider(cblue,0,0,1);
+
+add line color=(cred,cgreen,cblue)
+	pt=(xbeg,ybeg,0) pt=(yend,yend,3)
+	 pt=(xbeg,ybeg,4) pt=(xend,yend,5)
+	;
+display;
