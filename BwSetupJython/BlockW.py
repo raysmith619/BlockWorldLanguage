@@ -80,7 +80,7 @@ class BlockW():
         if graphic_type == BwGraphic.Type.UNKNOWN:
             self.error("Unrecognized command type " + name)
         cmd.setGraphicType(graphic_type)
-        self.addCmd(name="add")
+        return self.addCmd(name="add")
             
 
     """
@@ -103,12 +103,16 @@ class BlockW():
 
     
     
-    def display(self, trace='', **kwargs):
+    def display(self, trace='', cmd=None, cmds=None):
         try:
-            self.bExec.display()
+            if cmd != None:
+                self.bExec.display(cmd)
+            if cmds != None:
+                self.bExec.display(cmds)    
         except:
             exc = sys.exc_info()
-            print("display error:" + exc[1].message)
+            if exc[1].message != None:
+                print("display error:" + exc[1].message)
             if isinstance( sys.exc_info()[1], java.lang.Throwable ):
                 sys.stderr.write( "AS JAVA:\n" )
                 sys.exc_info()[1].printStackTrace() # java part
@@ -152,6 +156,14 @@ class BlockW():
         size_spec = self.mkSizeSpec(size_array)
         cmd.setSize(size_spec)
 
+    def partial(self, *values):
+        cmd = self.setCmd()
+        setting = True
+        if len(values) == 1:
+            setting = values[0]
+        elif len(values) > 1:
+            self.error("Invalid partial setting")
+        #cmd.setIsPartial(setting)
 
     
     def pt(self, *values):      # Abbreviation
@@ -226,7 +238,7 @@ class BlockW():
             
         self.bExec.addCmd(self.cmd)
         self.newCmd()       # Prepare for next cmd
-        
+        return cmd          # Return current command for possible augmenting
     
     """    
     Setup for next command

@@ -43,19 +43,28 @@ public class BwDisplay extends JFrame implements MouseListener{
 
 		this.parser = bExec.getParser();			// Short cut
 		this.sT = this.parser.getSymTable();	// Short cut to sym table
-		this.app = new Appearance();			// Default graphic appearance
+		setupDisplay();
 		this.lookAtCenter = this.parser.mkLocationSpec(0,0,0);
 		this.lookAtEye = this.parser.mkLocationSpec(10,10,10);
 		this.lookAtUp = this.parser.mkLocationSpec(0,0,1);
+		setDisplayWindowSize(1400, 900);
+		setTitle("Getting Ready");
+		setVisible(true);
+	}
+
+	
+	/**
+	 * Setup or resetup graphics platform
+	 * Allowing blank display
+	 */
+	public void setupDisplay() {
+		this.app = new Appearance();			// Default graphic appearance
 		setLayout(new BorderLayout());
 	    GraphicsConfiguration config = SimpleUniverse
 	            .getPreferredConfiguration();
 	    this.canvas = new Canvas3D(config);
 		add(BorderLayout.CENTER, this.canvas);
 		this.universe = new SimpleUniverse(this.canvas);
-		setDisplayWindowSize(1400, 900);
-		setTitle("Getting Ready");
-		setVisible(true);
 		this.rootGroup = new BranchGroup();
 		this.rootGroup.setCapability(Group.ALLOW_CHILDREN_EXTEND);
 		this.rootGroup.setCapability(Group.ALLOW_CHILDREN_WRITE);
@@ -73,13 +82,13 @@ public class BwDisplay extends JFrame implements MouseListener{
 		this.universe.addBranchGraph(this.branchGroup);
 	}
 	
-	
 	/**
 	 * Execute one or more command
 	 * @param cmds
 	 */
 	public void display(BwCmd ...cmds) throws BwException {
-		System.out.printf("in BwDisplay.display()\n");
+		if (trace.traceDebug())
+			System.out.printf("in BwDisplay.display()\n");
 		this.startTime = System.nanoTime();
 		if (this.timeLimit >= 0) {
 			this.endTime = (long) this.startTime
@@ -98,7 +107,8 @@ public class BwDisplay extends JFrame implements MouseListener{
 		if (this.controls != null)
 			this.controls.startDisplay();
 		setVisible(true);
-		System.out.printf("leaving BwDisplay.display()\n");
+		if (trace.traceDebug())
+			System.out.printf("leaving BwDisplay.display()\n");
 	}
 
 	
@@ -129,7 +139,8 @@ public class BwDisplay extends JFrame implements MouseListener{
 	 * @return true iff successful
 	 */
 	public boolean displayCmd(BwCmd cmd) throws BwException {
-		System.out.printf("in displayCmd(cmd)\n");
+		if (trace.traceDebug())
+			System.out.printf("in displayCmd(cmd)\n");
 		switch (cmd.getCmd_type()) {
 			case DISPLAY_SCENE:		// Display sceen
 				break;
@@ -187,7 +198,8 @@ public class BwDisplay extends JFrame implements MouseListener{
 	 * @return  - true iff ok
 	 */
 	public boolean addGraphic(BwCmd cmd) throws BwException {
-		System.out.printf("in addGraphic\n");
+		if (trace.traceDebug())
+			System.out.printf("in addGraphic\n");
 		BwGraphic.Type type = cmd.getGraphicType();
 		switch (type) {
         case AXIS:
@@ -682,12 +694,14 @@ public class BwDisplay extends JFrame implements MouseListener{
 	 * @throws BwException
 	 */
 	public boolean addText(BwCmd cmd) throws BwException {
-		System.out.printf("in addText\n");
+		if (trace.traceDebug())
+			System.out.printf("in addText\n");
 		BwValue textString = cmd.getTextString();
 		String text_string = "?";
 		if (textString != null)
 			text_string = textString.stringValue();
-		System.out.printf("textString = %s\n", text_string);
+		if (trace.traceDebug())
+			System.out.printf("textString = %s\n", text_string);
 
 		BwColorSpec color = cmd.getColor();
 		if (color == null) {
@@ -831,6 +845,7 @@ public class BwDisplay extends JFrame implements MouseListener{
 			System.out.printf("addLine with less than 2 points");
 			return false;
 		}
+
 		int nvert = (points.size()-1)*2;
 		Point3f[] points3f = new Point3f[nvert];
 
@@ -926,6 +941,13 @@ public class BwDisplay extends JFrame implements MouseListener{
 	    	this.controls.clear();
 	    }
 
+	}
+	
+	/**
+	 * Erase display
+	 */
+	public void erase() {
+		setupDisplay();
 	}
 	
 	/**

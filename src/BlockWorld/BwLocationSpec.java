@@ -55,6 +55,16 @@ public class BwLocationSpec {
 	}
 	
 	
+	public BwLocationSpec(BwSymTable sT,
+			BwValue x, BwValue y, BwValue z)
+					throws BwException {
+		this(sT);
+		this.x.setValue(x);
+		this.y.setValue(y);
+		this.z.setValue(z);
+	}
+	
+	
 	public BwLocationSpec(BwSymTable sT, ArrayList<BwValue> loclist)
 		throws Exception {
 		this(sT, sT.list2array(loclist));

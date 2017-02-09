@@ -209,6 +209,30 @@ public class BwCmd {
 	}
 
 	/**
+	 * Add point given three coordinates
+	 * Used for Jython front end
+	 * @throws BwException 
+	 */
+	public void addPoint(BwValue x, BwValue y, BwValue z)
+			throws BwException {
+		BwLocationSpec loc_spec = new BwLocationSpec(
+				this.sT,x,y,z);
+		addPointSpec(loc_spec);
+	}
+
+	/**
+	 * Add point given three coordinates
+	 * Used for Jython front end
+	 * @throws BwException 
+	 */
+	public void addPoint(float x, float y, float z)
+			throws BwException {
+		BwLocationSpec loc_spec = new BwLocationSpec(
+				this.sT,x,y,z);
+		addPointSpec(loc_spec);
+	}
+	
+	/**
 	 * Add first or additional point specification
 	 * Use location specification
 	 * @param loc_spec
@@ -759,9 +783,26 @@ public class BwCmd {
 	private BwValue textPath;				// Path, LEFT, RIGHT, UP, DOWN
 	private BwGraphic.Type graphicType;		// Graphical object type
 	private BwValue lineWidth;				// Line width if given
+	/**
+	 * @return the isPartial
+	 */
+	public Boolean getIsPartial() {
+		return isPartial;
+	}
+
+
+	/**
+	 * @param isPartial the isPartial to set
+	 */
+	public void setIsPartial(Boolean isPartial) {
+		this.isPartial = isPartial;
+	}
+
+
 	private BwColorSpec color;				// Graphical object Color
 	private BwSizeSpec size;				//
 	private BranchGroup branchGroup;
 	private int grid;						// Graphic id if any else (-1)
-
+	private Boolean isPartial;					// Is a partial command
+											//   relax requirements
 }

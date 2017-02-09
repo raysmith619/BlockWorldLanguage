@@ -13,12 +13,12 @@ for arg in parms:
 print("")
 		
 trace = BwTrace("BlockWorld.properties")
-trace.setAccept(1)
-trace.setTokenAccept(1)
-trace.setTokQueue(1)
-trace.setAll()
-trace.clearAll()
-trace.setInput(1)
+##trace.setAccept(1)
+##trace.setTokenAccept(1)
+##trace.setTokQueue(1)
+##trace.setAll()
+##trace.clearAll()
+##trace.setInput(1)
 bExec = BwExec(trace)
 parser = bExec.getParser()
 					# Jython BW script support

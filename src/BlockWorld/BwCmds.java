@@ -66,11 +66,15 @@ public class BwCmds {
 	
 	
 	/**
-	 * Get all storedcommands
-	 * @return vector of cmds
+	 * Get all stored commands
+	 * @return array of cmds
 	 */
-	public Vector<BwCmd> getCmds() {
-		return this.bCmds;
+	public BwCmd[] getCmds() {
+		int ncmd = this.bCmds.size();
+		BwCmd[] bCmds = new BwCmd[ncmd];
+		for (int i = 0; i < ncmd; i++)
+			bCmds[i] = this.bCmds.get(i);
+		return bCmds;
 	}
 
 	

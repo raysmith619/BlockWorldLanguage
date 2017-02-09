@@ -66,21 +66,42 @@ public class BwExec {
 			bD.clear();
 		setup(this.trace);
 	}
+
+	
+	/**
+	 * Erase display
+	 * @throws Exception 
+	 */
+	public void erase() throws Exception {
+		if (this.bCmds != null)
+			this.bCmds.clear();
+		if (this.bD != null)
+			bD.erase();
+	}
 	
 	
 	/**
-	 * Display/Execute contained commands in order
+	 * Display/Execute one command
 	 * @return true iff no errors
 	 */
-	public boolean display() {
+	public boolean display(BwCmd cmd) {
+		BwCmd[] cmds = new BwCmd[] {cmd};
+		return  display(cmds);
+	}
+	
+	
+	/**
+	 * Display/Execute given commands in order
+	 * @return true iff no errors
+	 */
+	public boolean display(BwCmd[] cmds) {
 		try {
-			this.trace.setAll();	// TFD
 			this.bD.setTimeLimit(this.timeLimit);		// Set our time limit
 			if (trace.traceExecute())
 				System.out.printf("\nExecuting Commands\n");
-			for (int j = 0; j < size(); j++) {
+			for (int j = 0; j < cmds.length; j++) {
 				int n = j + 1;
-				BwCmd cmd = getCmd(j);
+				BwCmd cmd = cmds[j];
 				if (trace.traceExecute()) {
 					System.out.printf("%3d: %s\n", cmd.getSrcLineNo(), cmd.toString());
 					try {
@@ -90,13 +111,17 @@ public class BwExec {
 						e.printStackTrace();
 					}
 				}
-				System.out.printf("before display(cmd)\n");
+				if (trace.traceGraphics())
+					System.out.printf("before display(cmd)\n");
 				this.bD.display(cmd);
-				System.out.printf("after display(cmd)\n");
+				if (trace.traceGraphics())
+					System.out.printf("after display(cmd)\n");
 			}
-			System.out.printf("before setDisplay()\n");
+			if (trace.traceGraphics())
+				System.out.printf("before setDisplay()\n");
 			this.bD.setDisplay();
-			System.out.printf("after setDisplay()\n");
+			if (trace.traceGraphics())
+				System.out.printf("after setDisplay()\n");
 		} catch (BwException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -104,7 +129,16 @@ public class BwExec {
 		}
 		return true;
 	}
-
+	
+	
+	/**
+	 * Display/Execute contained commands in order
+	 * @return true iff no errors
+	 */
+	public boolean display() {
+		BwCmd[] cmds = getCmds();
+		return display(cmds);
+	}
 	
 	/**
 	 * List commands
@@ -127,6 +161,12 @@ public class BwExec {
 	 */
 	public BwCmd getCmd(int i) {
 		return this.bCmds.getCmd(i);
+	}
+	/**
+	 * Get cmds
+	 */
+	public BwCmd[] getCmds() {
+		return this.bCmds.getCmds();
 	}
 
 	/**
