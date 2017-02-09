@@ -1,0 +1,20 @@
+//test_text.bwif
+add axis;
+slider(tsize,0,1,10);
+slider(t_x,0,1,10);
+slider(t_y,0,1,10);
+slider(t_z,0,1,10);
+slider(talign,ALIGN_CENTER,ALIGN_FIRST,ALIGN_LAST);
+slider(tpath,PATH_LEFT, PATH_RIGHT, PATH_DOWN);
+slider(leyex,-20,10,20);
+slider(leyey,-20,-10,20);
+slider(leyez,-20,10,20);
+add lookatEye loc=leyex,leyey,leyez;
+add text text="text at loc=-4,2,2",talign,tpath loc=t_x,t_y,t_z size=tsize color=1,0,0;
+add text text="text at loc=-3,2,2",talign,tpath loc=5,5,5 size=tsize color=1,0,.4;
+add text text="loc=-2,2,2",talign,tpath loc=6,6,6 size=tsize color=1,0,0.5;
+add text text="loc=-4,4,4",talign,tpath loc=7,7,7 size=tsize color=1,0,0.6;
+add block loc=-4,2,2 size=.5 color=1,0,0;
+add block loc=-3,2,2 size=.4 color=1,0,.4;
+add block loc=-2,2,2 size=.3 color=1,0,0.5;
+add block loc=-4,4,4 size=.2 color=1,0,0.6;

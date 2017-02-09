@@ -13,52 +13,10 @@ import javax.vecmath.Point3f;
  */
 public class BwLocationSpec {
 	
-	BwLocationSpec() {
-		this.x = new BwValue();
-		this.y = new BwValue();
-		this.z = new BwValue(); 
-	}
-	
-	/**
-	 * @return the x
-	 */
-	public float getX() throws BwException {
-		return x.floatValue();
-	}
-
-	/**
-	 * @param x the x to set
-	 */
-	public void setX(float x) throws BwException {
-		this.x.setValue(x);
-	}
-
-	/**
-	 * @return the y
-	 */
-	public float getY() throws BwException {
-		return this.y.floatValue();
-	}
-
-	/**
-	 *  @param y the y to set
-	 */
-	public void setY(float y) {
-		this.y.setValue(y);
-	}
-
-	/**
-	 * @return the z
-	 */
-	public float getZ() throws BwException {
-		return z.floatValue();
-	}
-
-	/**
-	 * @param z the z to set
-	 */
-	public void setZ(float z) {
-		this.z.setValue(z);
+	BwLocationSpec(BwSymTable sT) {
+		this.x = mkValue();
+		this.y = mkValue();
+		this.z = mkValue(); 
 	}
 
 
@@ -68,8 +26,8 @@ public class BwLocationSpec {
 	 * @param y
 	 * @param z
 	 */
-	public BwLocationSpec(double x, double y, double z) {
-		this();
+	public BwLocationSpec(BwSymTable sT, double x, double y, double z) {
+		this(sT);
 		this.x.setValue((float)x);
 		this.y.setValue((float)y);
 		this.z.setValue((float)z);
@@ -81,26 +39,50 @@ public class BwLocationSpec {
 	 * @param y
 	 * @param z
 	 */
-	public BwLocationSpec(float x, float y, float z) {
-		this();
+	public BwLocationSpec(BwSymTable sT, float x, float y, float z) {
+		this(sT);
 		this.x.setValue(x);
 		this.y.setValue(y);
 		this.z.setValue(z);
 	}
 	
 	
-	public BwLocationSpec(ArrayList<BwValue> loclist)
+	public BwLocationSpec(BwSymTable sT, int x, int y, int z) {
+		this(sT);
+		this.x.setValue(x);
+		this.y.setValue(y);
+		this.z.setValue(z);
+	}
+	
+	
+	public BwLocationSpec(BwSymTable sT,
+			BwValue x, BwValue y, BwValue z)
+					throws BwException {
+		this(sT);
+		this.x.setValue(x);
+		this.y.setValue(y);
+		this.z.setValue(z);
+	}
+	
+	
+	public BwLocationSpec(BwSymTable sT, ArrayList<BwValue> loclist)
 		throws Exception {
-		if (loclist.size() <= 0 || loclist.size() > 3) {
+		this(sT, sT.list2array(loclist));
+	}	
+	
+	public BwLocationSpec(BwSymTable sT, BwValue loclist[])
+		throws Exception {
+		this(sT);
+		if (loclist.length <= 0 || loclist.length > 3) {
 			throw new Exception("Illegal number of coords:"
-								+ loclist.size());
+								+ loclist.length);
 		}
-		if (loclist.size() > 0) {
-			this.x = loclist.get(0);
-			if (loclist.size() > 1) {
-				this.y = loclist.get(1);
-				 if (loclist.size() > 2) {
-					this.z = loclist.get(2);
+		if (loclist.length > 0) {
+			this.x = loclist[0];
+			if (loclist.length > 1) {
+				this.y = loclist[1];
+				 if (loclist.length > 2) {
+					this.z = loclist[2];
 				} else {
 					this.z = this.y;
 				}
@@ -108,12 +90,13 @@ public class BwLocationSpec {
 				this.z = this.y = this.x;
 			}
 		} else {
-			this.z = this.y = this.x =loclist.get(0);		
+			this.z = this.y = this.x =loclist[0];		
 		}
 	}
 			
-	public BwLocationSpec(float...coords)
+	public BwLocationSpec(BwSymTable sT, float...coords)
 		throws Exception {
+		this(sT);
 		if (coords.length > 0) {
 			x.setValue(coords[0]);
 			if (coords.length > 1) {
@@ -134,6 +117,69 @@ public class BwLocationSpec {
 			}
 		}
 	}
+	
+	/**
+	 * @return the x
+	 */
+	public float getX() throws BwException {
+		return x.floatValue();
+	}
+
+	/**
+	 * @param x the x to set
+	 */
+	public void setX(float x) throws BwException {
+		this.x.setValue(x);
+	}
+
+	/**
+	 * @param x set value
+	 */
+	public void setX(BwValue x) {
+		this.x = x;
+	}
+
+	/**
+	 * @return the y
+	 */
+	public float getY() throws BwException {
+		return this.y.floatValue();
+	}
+
+	/**
+	 *  @param y the y to set
+	 */
+	public void setY(float y) {
+		this.y.setValue(y);
+	}
+
+	/**
+	 * @param y set value
+	 */
+	public void setY(BwValue x) {
+		this.y = y;
+	}
+
+	/**
+	 * @return the z
+	 */
+	public float getZ() throws BwException {
+		return z.floatValue();
+	}
+
+	/**
+	 * @param z the z to set
+	 */
+	public void setZ(float z) {
+		this.z.setValue(z);
+	}
+
+	/**
+	 * @param z set value
+	 */
+	public void setZ(BwValue z) {
+		this.x = z;
+	}
 
 	
 	/**
@@ -149,22 +195,40 @@ public class BwLocationSpec {
 	 * String version for documentation/display
 	 */
 	public String toString() {
-		
-		return ("" + this.x
-			+ "," + this.y
-			+ "," + this.z);
+		String str = "(";
+		if (this.x != null)
+			str += this.x;
+		if (this.y != null)
+			str += "," + this.y;
+		if (this.z != null)
+			str += "," + this.z;
+		str += ")";
+		return str;
 	}
 
 	/**
 	 * String version for documentation/display
 	 */
 	public String toStringEval() throws BwException {
-		
-		return ("" + this.x.toStringEval()
-			+ "," + this.y.toStringEval()
-			+ "," + this.z.toStringEval());
+		String str = "(";
+		if (this.x != null)
+			str += this.x.toStringEval();
+		if (this.y != null)
+			str += "," + this.y.toStringEval();
+		if (this.z != null)
+			str += "," + this.z.toStringEval();
+		str += ")";
+		return str;
 	}
 
+	/**
+	 * Shortcuts to Symbol Table
+	 */
+	public BwValue mkValue() {
+		return new BwValue(this.sT);
+	}
+	
+	private BwSymTable sT;		// Access to Symbol Table
 	private BwValue x;
 	private BwValue y;
 	private BwValue z;

@@ -8,6 +8,8 @@ import java.nio.file.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
+import BlockWorld.BwDisplay;
+
 /**
  * 
  * @author raysm
@@ -28,19 +30,21 @@ import java.util.stream.Stream;
  *		
  */
 public class BwExec {
-	public BwExec(BwTrace trace) {
+	public BwExec(BwTrace trace) throws Exception {
 		setup(trace);
 	}
 
 	/**
 	 * Setup for pgm compile/execution
 	 * @param cmd
+	 * @throws Exception 
 	 */
-	public void setup(BwTrace trace) {
+	public void setup(BwTrace trace) throws Exception {
 		this.trace = trace;
 		this.cmdString = "";
 		this.bCmds = new BwCmds(this.trace);
 		this.parser = new BwParser(trace, this.bCmds);
+		this.sT = this.parser.getSymTable();
 		this.bD = new BwDisplay(trace, this);
 		
 	}
@@ -55,26 +59,49 @@ public class BwExec {
 	
 	/**
 	 * Clear out display
+	 * @throws Exception 
 	 */
-	public void clear() {
+	public void clear() throws Exception {
 		if (this.bD != null)
 			bD.clear();
 		setup(this.trace);
 	}
+
+	
+	/**
+	 * Erase display
+	 * @throws Exception 
+	 */
+	public void erase() throws Exception {
+		if (this.bCmds != null)
+			this.bCmds.clear();
+		if (this.bD != null)
+			bD.erase();
+	}
 	
 	
 	/**
-	 * Display/Execute contained commands in order
+	 * Display/Execute one command
 	 * @return true iff no errors
 	 */
-	public boolean display() {
+	public boolean display(BwCmd cmd) {
+		BwCmd[] cmds = new BwCmd[] {cmd};
+		return  display(cmds);
+	}
+	
+	
+	/**
+	 * Display/Execute given commands in order
+	 * @return true iff no errors
+	 */
+	public boolean display(BwCmd[] cmds) {
 		try {
 			this.bD.setTimeLimit(this.timeLimit);		// Set our time limit
 			if (trace.traceExecute())
 				System.out.printf("\nExecuting Commands\n");
-			for (int j = 0; j < size(); j++) {
+			for (int j = 0; j < cmds.length; j++) {
 				int n = j + 1;
-				BwCmd cmd = getCmd(j);
+				BwCmd cmd = cmds[j];
 				if (trace.traceExecute()) {
 					System.out.printf("%3d: %s\n", cmd.getSrcLineNo(), cmd.toString());
 					try {
@@ -84,9 +111,17 @@ public class BwExec {
 						e.printStackTrace();
 					}
 				}
+				if (trace.traceGraphics())
+					System.out.printf("before display(cmd)\n");
 				this.bD.display(cmd);
+				if (trace.traceGraphics())
+					System.out.printf("after display(cmd)\n");
 			}
+			if (trace.traceGraphics())
+				System.out.printf("before setDisplay()\n");
 			this.bD.setDisplay();
+			if (trace.traceGraphics())
+				System.out.printf("after setDisplay()\n");
 		} catch (BwException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -95,11 +130,43 @@ public class BwExec {
 		return true;
 	}
 	
+	
+	/**
+	 * Display/Execute contained commands in order
+	 * @return true iff no errors
+	 */
+	public boolean display() {
+		BwCmd[] cmds = getCmds();
+		return display(cmds);
+	}
+	
+	/**
+	 * List commands
+	 */
+	public void list() {
+		for (int j = 0; j < size(); j++) {
+			int n = j + 1;
+			BwCmd cmd = getCmd(j);
+			System.out.printf("%3d: %s\n", cmd.getSrcLineNo(), cmd.toString());
+			try {
+				System.out.printf("%s\n", cmd.toStringExtended());
+			} catch (BwException e) {
+				System.out.printf("Exception %s\n", e.getMessage());
+				e.printStackTrace();
+			}
+		}
+	}
 	/**
 	 * Get cmd
 	 */
 	public BwCmd getCmd(int i) {
 		return this.bCmds.getCmd(i);
+	}
+	/**
+	 * Get cmds
+	 */
+	public BwCmd[] getCmds() {
+		return this.bCmds.getCmds();
 	}
 
 	/**
@@ -112,8 +179,9 @@ public class BwExec {
 
 	/**
 	 * Run file
+	 * @throws Exception 
 	 */
-	public boolean runFile(String fileName) {
+	public boolean runFile(String fileName) throws Exception {
 		if (!this.parser.procFile(fileName)) {
 			return false;
 		}
@@ -147,18 +215,26 @@ public class BwExec {
 	 *
 	 * @param runListFile - file containing files to run
 	 * @return true iff OK
+	 * @throws Exception 
 	 */
-	public boolean runList(String runListFile){
-		System.out.printf("Running list File:%s\n", runListFile);
-		File fin = new File(runListFile);
+	public boolean runList(String runListFile) throws Exception{
+		String runListPath = this.trace.getSourcePath(runListFile);
+		System.out.printf("Running list File:%s\n", runListPath);
+		try {
+			File fin = new File(runListPath);
+		} catch (Exception ex) {
+			System.out.printf("Failed in File/get\n");
+		}
+		
 		BufferedReader br;
+		File fin = new File(runListPath);
 		try {
 			br = new BufferedReader(new FileReader(fin));
 		} catch (FileNotFoundException e1) {
 			// TODO Auto-generated catch block
 			// e1.printStackTrace();
 			System.out.printf("Can't open runListFile: %s\n",
-					runListFile);
+					runListPath);
 			return false;
 		}
 		String line = null;
@@ -199,6 +275,13 @@ public class BwExec {
 	}
 
 	/**
+	 * provide current controls display / access
+	 */
+	public BwControls getControls() {
+		return this.controls;
+	}
+
+	/**
 	 * link execution with controls display / access
 	 */
 	public void setControls(BwControls controls) {
@@ -216,7 +299,7 @@ public class BwExec {
 	
 	public void setSymValue(String varName, double value) {
 		try {
-			this.parser.setValue(varName, new BwValue(value));
+			this.parser.setValue(varName, mkValue(value));
 		} catch (BwException e) {
 			System.out.printf("setSymValue failed");
 			e.printStackTrace();
@@ -285,11 +368,23 @@ public class BwExec {
 	public boolean isContinue() {
 		return !pgmQuit;
 	}
+	
+	/**
+	 * Symbol Table short cuts
+	 */
+	public BwValue mkValue() {
+		return new BwValue(this.sT);
+	}
+	public BwValue mkValue(double val) {
+		return new BwValue(this.sT, val);
+	}
+	
+	private BwParser parser;			// Parser
+	private BwSymTable sT;				// Access to symbol table
 	private BwTrace trace;				// Tracing control
 	private String cmdString;			// Pending command string (left over from previous cmd)
 	private BwCmds bCmds;				// Access to stored commands
 	private int verbose = 0;
-	private BwParser parser;			// Parser
 	private boolean pgmQuit = false;	// true => end processing
 	private boolean error = false;		// true => error in processing
 	private String errorDescription;	// Primary error description

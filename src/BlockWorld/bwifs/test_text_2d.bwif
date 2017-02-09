@@ -1,0 +1,9 @@
+//test_text_2d.bwif
+add text2d text="text at loc=-4,2,2" loc=-4,2,2 size=.5 color=1,0,0;
+add text2d text="text at loc=-3,2,2" loc=-3,2,2 size=.4 color=1,0,.4;
+add text2d text="loc=-2,2,2" loc=-2,2,2 size=.3 color=1,0,0.5;
+add text2d text="loc=-4,4,4" loc=-4,4,4 size=.2 color=1,0,0.6;
+add block loc=-4,2,2 size=.5 color=1,0,0;
+add block loc=-3,2,2 size=.4 color=1,0,.4;
+add block loc=-2,2,2 size=.3 color=1,0,0.5;
+add block loc=-4,4,4 size=.2 color=1,0,0.6;

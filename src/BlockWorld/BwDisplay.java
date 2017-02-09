@@ -1,10 +1,13 @@
 package BlockWorld;
 
 import javax.vecmath.Color3f;
+import javax.vecmath.Point2d;
+import javax.vecmath.Point2f;
 import javax.vecmath.Point3d;
 import javax.vecmath.Point3f;
 import javax.vecmath.Vector3f;
 import javax.vecmath.Tuple3f.*;
+import javax.vecmath.Vector2f;
 import javax.vecmath.Vector3d;
 
 import com.sun.j3d.utils.geometry.*;
@@ -19,6 +22,7 @@ import java.awt.event.MouseListener;
 import java.util.Vector;
 
 import javax.swing.*;
+import javax.swing.Renderer;
 import javax.media.j3d.*;
 import com.sun.j3d.utils.universe.*;
 import com.sun.j3d.utils.geometry.*;
@@ -30,26 +34,37 @@ public class BwDisplay extends JFrame implements MouseListener{
 	 * 
 	 * @param trace tracing/logging control
 	 * @param bExec - execution control, parsing, vars
+	 * @throws Exception 
 	 */
-	public BwDisplay(BwTrace trace, BwExec bexec) {
+	public BwDisplay(BwTrace trace, BwExec bexec) throws Exception {
 		
 		this.trace = trace;
 		this.bExec = bexec;
 
 		this.parser = bExec.getParser();			// Short cut
+		this.sT = this.parser.getSymTable();	// Short cut to sym table
+		setupDisplay();
+		this.lookAtCenter = this.parser.mkLocationSpec(0,0,0);
+		this.lookAtEye = this.parser.mkLocationSpec(10,10,10);
+		this.lookAtUp = this.parser.mkLocationSpec(0,0,1);
+		setDisplayWindowSize(1400, 900);
+		setTitle("Getting Ready");
+		setVisible(true);
+	}
+
+	
+	/**
+	 * Setup or resetup graphics platform
+	 * Allowing blank display
+	 */
+	public void setupDisplay() {
 		this.app = new Appearance();			// Default graphic appearance
-		this.lookAtCenter = new BwLocationSpec(0,0,0);
-		this.lookAtEye = new BwLocationSpec(10,10,10);
-		this.lookAtUp = new BwLocationSpec(0,0,1);
 		setLayout(new BorderLayout());
 	    GraphicsConfiguration config = SimpleUniverse
 	            .getPreferredConfiguration();
-	    Canvas3D canvas = new Canvas3D(config);
-		add(BorderLayout.CENTER, canvas);
-		this.universe = new SimpleUniverse(canvas);
-		setDisplayWindowSize();
-		setTitle("Getting Ready");
-		setVisible(true);
+	    this.canvas = new Canvas3D(config);
+		add(BorderLayout.CENTER, this.canvas);
+		this.universe = new SimpleUniverse(this.canvas);
 		this.rootGroup = new BranchGroup();
 		this.rootGroup.setCapability(Group.ALLOW_CHILDREN_EXTEND);
 		this.rootGroup.setCapability(Group.ALLOW_CHILDREN_WRITE);
@@ -67,12 +82,13 @@ public class BwDisplay extends JFrame implements MouseListener{
 		this.universe.addBranchGraph(this.branchGroup);
 	}
 	
-	
 	/**
 	 * Execute one or more command
 	 * @param cmds
 	 */
-	public void display(BwCmd...cmds) throws BwException {
+	public void display(BwCmd ...cmds) throws BwException {
+		if (trace.traceDebug())
+			System.out.printf("in BwDisplay.display()\n");
 		this.startTime = System.nanoTime();
 		if (this.timeLimit >= 0) {
 			this.endTime = (long) this.startTime
@@ -91,6 +107,8 @@ public class BwDisplay extends JFrame implements MouseListener{
 		if (this.controls != null)
 			this.controls.startDisplay();
 		setVisible(true);
+		if (trace.traceDebug())
+			System.out.printf("leaving BwDisplay.display()\n");
 	}
 
 	
@@ -121,6 +139,8 @@ public class BwDisplay extends JFrame implements MouseListener{
 	 * @return true iff successful
 	 */
 	public boolean displayCmd(BwCmd cmd) throws BwException {
+		if (trace.traceDebug())
+			System.out.printf("in displayCmd(cmd)\n");
 		switch (cmd.getCmd_type()) {
 			case DISPLAY_SCENE:		// Display sceen
 				break;
@@ -132,6 +152,12 @@ public class BwDisplay extends JFrame implements MouseListener{
 				break;
 				
 			case MOVE_OBJECT:		// Move object
+				break;
+			
+			case INCLUDE_FILE:		// Include file (compile directive)
+				break;
+				
+			case INCLUDE_FILE_END:	// Include file (compile directive)
 				break;
 				
 			case MODIFY_OBJECT:		// Modify object
@@ -172,6 +198,8 @@ public class BwDisplay extends JFrame implements MouseListener{
 	 * @return  - true iff ok
 	 */
 	public boolean addGraphic(BwCmd cmd) throws BwException {
+		if (trace.traceDebug())
+			System.out.printf("in addGraphic\n");
 		BwGraphic.Type type = cmd.getGraphicType();
 		switch (type) {
         case AXIS:
@@ -212,6 +240,12 @@ public class BwDisplay extends JFrame implements MouseListener{
 
         case SPHERE:
             return addSphere(cmd);
+
+        case TEXT:
+            return addText(cmd);
+
+        case TEXT2D:
+            return addText2D(cmd);
         	
         case WINDOW:
         	return addWindow(cmd);
@@ -472,8 +506,9 @@ public class BwDisplay extends JFrame implements MouseListener{
 	 * Setup Slider
 	 * Initializes variable to slider's current setting
 	 * Sets up slider control if new
+	 * @throws BwException 
 	 */
-	public boolean sliderCmd (BwCmd cmd) {
+	public boolean sliderCmd (BwCmd cmd) throws BwException {
 		BwSliderSpec slider = cmd.getSliderSpec();
 		if (this.controls == null)
 			return false;
@@ -532,12 +567,12 @@ public class BwDisplay extends JFrame implements MouseListener{
 	public boolean addAxis(BwCmd cmd) throws BwException {
 		BwColorSpec color = cmd.getColor();
 		if (color == null) {
-			color = new BwColorSpec(1f, 1f, 1F);
+			color = mkColorSpec(1f, 1f, 1F);
 		}
 		float deflen = 10;
 		BwSizeSpec size = cmd.getSize();
 		if (size == null) {
-			size = new BwSizeSpec(deflen, deflen, deflen);
+			size = mkSizeSpec(deflen, deflen, deflen);
 		}
 
 		float xlen = size.getX();
@@ -633,6 +668,8 @@ public class BwDisplay extends JFrame implements MouseListener{
 	
 		return true;
 	}
+	
+	
 	/**
 	 * Add block object to display
 	 * @param cmd
@@ -648,7 +685,140 @@ public class BwDisplay extends JFrame implements MouseListener{
 		placeGraphic(cmd, prim, loc, color);
 		return true;
 	}
+
 	
+	/**
+	 * Add text (3D) to display
+	 * @param cmd
+	 * @return true --> success
+	 * @throws BwException
+	 */
+	public boolean addText(BwCmd cmd) throws BwException {
+		if (trace.traceDebug())
+			System.out.printf("in addText\n");
+		BwValue textString = cmd.getTextString();
+		String text_string = "?";
+		if (textString != null)
+			text_string = textString.stringValue();
+		if (trace.traceDebug())
+			System.out.printf("textString = %s\n", text_string);
+
+		BwColorSpec color = cmd.getColor();
+		if (color == null) {
+			color = mkColorSpec(1f, 1f, 1F);
+		}
+		BwSizeSpec size = cmd.getSize();
+		BwLocationSpec loc = cmd.getLoc();
+		Point3f loc3f = loc.to3f();
+		BwValue fontValue = cmd.getTextFont();
+		String font_name = "Tahoma";
+		if (fontValue != null)
+			font_name = fontValue.stringValue();
+		BwValue fontType = cmd.getTextStyle();
+		int font_type = Font.PLAIN;
+		if (fontType != null)
+			font_type = fontType.intValue();
+		BwValue fontSize = cmd.getTextSize();
+		int font_size = 1;
+		if (fontSize != null)
+			font_size = fontSize.intValue();
+		if (font_size < 1) {
+			font_size = 1;					// Limit smallness
+		}
+		int text_align = Text3D.ALIGN_FIRST;
+		BwValue textAlign = cmd.getTextAlignment();
+		if (textAlign != null)
+			text_align = textAlign.intValue();
+		int text_path = Text3D.PATH_LEFT;
+		BwValue textPath = cmd.getTextPath();
+		if (textPath != null)
+			text_path = textPath.intValue();
+		
+		Font font = new Font(font_name, font_type, font_size);
+	    Font3D f3d = new Font3D(font,
+	            new FontExtrusion());
+	    Text3D text3D = new Text3D(f3d, text_string,
+	    		loc3f,
+	    		text_align, text_path);
+	    text3D.setCapability(Geometry.ALLOW_INTERSECT);
+	    Shape3D s3D1 = new Shape3D();
+	    s3D1.setGeometry(text3D);
+	    TransformGroup textScale = new TransformGroup();
+	    Transform3D t3d = new Transform3D();
+	    t3d.setScale(0.1);			// Set text scale
+	    t3d.setTranslation(new Vector3f(loc3f));		// move to location
+	    textScale.setTransform(t3d);
+	    textScale.addChild(s3D1);
+	    Appearance a = new Appearance();
+	    s3D1.setAppearance(a);
+	    BranchGroup text_group = new BranchGroup();
+	    text_group.addChild(textScale);
+		return placeGraphic(cmd, text_group);
+	}
+
+	
+	/**
+	 * Add 2D text to display
+	 * @param cmd
+	 * @return true --> success
+	 * @throws BwException
+	 */
+	public boolean addText2D(BwCmd cmd) throws BwException {
+		BwValue textString = cmd.getTextString();
+		String text_string = "?";
+		if (textString != null)
+			text_string = textString.stringValue();
+		BwColorSpec color = cmd.getColor();
+		BwSizeSpec size = cmd.getSize();
+		BwLocationSpec loc = cmd.getLoc();
+		Point3f point3f = new Point3f(loc.getX(), loc.getY(), loc.getZ());
+		Point2f point2f = get3DTo2DPoint(point3f);
+		BwValue fontValue = cmd.getTextFont();
+		String font_name = "Tahoma";
+		if (fontValue != null)
+			font_name = fontValue.stringValue();
+		int font_type = Font.PLAIN;
+		BwValue fontSize = cmd.getTextSize();
+		int font_size = 10;
+		if (fontSize != null)
+			font_size = fontSize.intValue();
+		Graphics gr = this.canvas.getGraphics();
+
+		Font font = new Font(font_name, font_type, font_size);
+		gr.setFont(font);
+		int xpix = (int)point2f.x;
+		int ypix = (int)point2f.y;
+		xpix = 50;
+		ypix = 70;
+		gr.drawString(text_string, xpix, ypix);
+		return true;
+	}
+	
+	public Point2f get3DTo2DPoint(Point3f point3f) {
+		Transform3D temp = new Transform3D();
+		this.canvas.getVworldToImagePlate(temp);
+		temp.transform(point3f);
+		Point2d point2d = new Point2d();
+		Point3d point3d = new Point3d(point3f);
+		this.canvas.getPixelLocationFromImagePlate(point3d,point2d);
+		Point2f point2f = new Point2f(point2d);
+		return point2f;
+	}	
+	/**
+	 * 
+	public Vector2f WorldPosToScreenPos4(Vector3f p)
+	{
+	    Vector3f.Project(p, 0, 0, Renderer.ClientSize.Width, RenderForm.ClientSize.Height, 1, 10000, ViewProj);
+	    return new Vector2f(p.X, p.Y);
+	}
+	*/
+	
+	 /**
+	  * 4th method was right, all it had missing was retrieving the value returned by Vector3.Project().
+	  * @param cmd
+	  * @return
+	  * @throws BwException
+	  */
 	public boolean addWindow(BwCmd cmd) throws BwException {
 		BwSizeSpec size = cmd.getSize();
 		setDisplayWindowSize((int)size.getX(), (int)size.getY());
@@ -675,6 +845,7 @@ public class BwDisplay extends JFrame implements MouseListener{
 			System.out.printf("addLine with less than 2 points");
 			return false;
 		}
+
 		int nvert = (points.size()-1)*2;
 		Point3f[] points3f = new Point3f[nvert];
 
@@ -689,13 +860,13 @@ public class BwDisplay extends JFrame implements MouseListener{
 		
 		BwColorSpec color = cmd.getColor();
 		if (color == null) {
-			color = new BwColorSpec(1f, 1f, 1F);
+			color = mkColorSpec(1f, 1f, 1F);
 		}
 		Color3f line_color = bwcolor2color3f(color);
 		
 		BwValue lineWidth = cmd.getLineWidth();
 		if (lineWidth == null) {
-			lineWidth = new BwValue(5);
+			lineWidth = mkValue(5);
 		}
 		float line_width = lineWidth.floatValue();
 
@@ -773,6 +944,13 @@ public class BwDisplay extends JFrame implements MouseListener{
 	}
 	
 	/**
+	 * Erase display
+	 */
+	public void erase() {
+		setupDisplay();
+	}
+	
+	/**
 	 * Check if end of display / execution
 	 */
 	
@@ -820,11 +998,30 @@ public class BwDisplay extends JFrame implements MouseListener{
 		// TODO Auto-generated method stub
 		System.out.println("Entered");		
 	}
-	
 
+	/**
+	 * Short cuts to Symbol Table
+	 */
+	BwValue mkValue() {
+		return new BwValue(this.sT);
+	}
+	
+	BwValue mkValue(int val) {
+		return new BwValue(this.sT, val);
+	}
+	
+	BwSizeSpec mkSizeSpec(float x, float y, float z) {
+		return new BwSizeSpec(this.sT, x, y, z);
+	}
+	
+	BwColorSpec mkColorSpec(float red, float green, float blue) {
+		return new BwColorSpec(this.sT, red, green, blue);
+	}
+	
 	BwTrace trace;						// Program trace / control
 	BwExec bExec;						// Access to cmd running...parsing,...vars
 	BwParser parser;					// Short cut
+	BwSymTable sT;						// Short cut
 	BwControls controls;				// sliders... when connected else null
 
 	private int windowHeight = 200;		// Display window height in pixels
@@ -833,6 +1030,7 @@ public class BwDisplay extends JFrame implements MouseListener{
 	private long startTime = 0;			// Execution start in nanoseconds
 	private long endTime = -1;			// End time if >= 0
 	private SimpleUniverse universe;	// Structure to contain objects
+	private Canvas3D canvas;			//' Our display canvas
 	private BranchGroup rootGroup;
 	private BranchGroup branchGroup;
 	Appearance app;
