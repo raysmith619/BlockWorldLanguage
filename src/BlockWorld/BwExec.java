@@ -53,10 +53,25 @@ public class BwExec {
 	 *
 	 */
 	public void addCmd(BwCmd cmd) {
+		System.out.println("addCmd:" + cmd);
+		if (cmd.getCmd_type() == BwCmdType.SLIDER) {
+			System.out.println("addCmd:" + "SLIDER");
+			setupControls();
+		}
 		this.bCmds.addCmd(cmd);
 	}
 
 	
+	/**
+	 * Setup controls window for runtime adjustments
+	 */
+	public void setupControls() {
+		if (this.controls == null) {
+			System.out.print("setupControls\n");
+			this.controls = new BwControls(this.trace, this);
+			this.controls.setVisible(true);
+		}
+	}
 	/**
 	 * Clear out display
 	 * @throws Exception 
@@ -127,6 +142,9 @@ public class BwExec {
 			e.printStackTrace();
 			return false;
 		}
+		if (this.controls != null)
+			this.controls.setVisible(true);
+
 		return true;
 	}
 	
@@ -137,6 +155,8 @@ public class BwExec {
 	 */
 	public boolean display() {
 		BwCmd[] cmds = getCmds();
+		if (this.trace.traceExecute(2))
+			System.out.printf("display():%d cmds\n", cmds.length);
 		return display(cmds);
 	}
 	

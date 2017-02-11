@@ -124,6 +124,14 @@ public class BwCmd {
 		return this.errorDescription;
 	}
 
+	/**
+	 * Modify this command display
+	 * @return
+	 */
+	public BwCmd modCmd() {
+		return this;
+	}
+	
 	public BwCmdType name2type(String name_str) {
 		String name = name_str.toLowerCase();
 		switch (name) {
@@ -246,6 +254,14 @@ public class BwCmd {
 					// leaving one or more coordinates
 					// unchanged.
 		points.addElement(loc_spec);
+	}
+	
+	/**
+	 * Delete all points
+	 */
+	
+	public void clearPoints() {
+		this.points = new Vector<BwLocationSpec>();
 	}
 
 	public Vector<BwLocationSpec> getPoints() {

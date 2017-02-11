@@ -26,8 +26,6 @@ bW = BlockW(trace=trace, bExec=bExec)
 	
 graphicsFrame = javax.swing.JFrame("Graphics") 
 graphicsFrame.setVisible(True)       # Display the window.
-controls = BwControls(trace, bExec)
-controls.setVisible(True)
 		 
 
 
