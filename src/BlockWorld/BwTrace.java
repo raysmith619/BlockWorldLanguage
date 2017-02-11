@@ -121,12 +121,13 @@ public class BwTrace {
 		
 	}
 	
-	public void setLevel(String trace_name, int...levels) {
-		int level = 1;
-		if (levels.length > 0) {
-			level = levels[0];
-		}
+	public void setLevel(String trace_name) {
+		setLevel(trace_name, 1);
+	}
 
+
+	
+	public void setLevel(String trace_name, int level) {
 		switch (trace_name.toLowerCase()) {
 			case "execute":
 				this.execute = level;
@@ -188,12 +189,32 @@ public class BwTrace {
 		return this.parse > 0;
 	}
 	
-	public boolean traceExecute() {
-		return this.execute > 0;
+	/**
+	 * Support levels of trace
+	 * Default (no args) is 1
+	 * @param levels
+	 * @return
+	 */
+	public boolean traceExecute(int... levels) {
+		int level = 1;
+		if (levels.length > 0)
+			level = levels[0];
+		
+		return this.execute >= level;
 	}
 	
-	public boolean traceGraphics() {
-		return this.graphics > 0;
+	/**
+	 * Support levels of trace
+	 * Default (no args) is 1
+	 * @param levels
+	 * @return
+	 */
+	public boolean traceGraphics(int...levels) {
+		int level = 1;
+		if (levels.length > 0)
+			level = levels[0];
+		
+		return this.graphics >= level;
 	}
 	
 	public boolean traceInput() {
@@ -400,18 +421,43 @@ public class BwTrace {
 	 * Get absolute if fileName is not absolute
 	 * TBD handle chain of paths like C include paths
 	 * @param fileName
-	 * @return absolute file path
+	 * @return absolute file path, "" if not found
 	 */
 	public String getIncludePath(String fileName) {
 		Path p = Paths.get(fileName); 
 		if ( !p.isAbsolute() ) {
-			String dir = this.defaultProps.getProperty("include_files");
-			if (fileName.equals("")) {
-				System.err.print("%s is not absolute and no include_files in properties file\n");
-				return fileName;
+			String[] dirs = getAsStringArray("include_files");
+			ArrayList<String> searched = new ArrayList<String>();
+			for (String dir : dirs) {
+				File inf = new File(dir, fileName);
+				if (inf.exists() && !inf.isDirectory()) {
+					try {
+						return inf.getCanonicalPath();
+					} catch (IOException e) {
+						System.err.printf("Problem with path %s,%s",
+								dir, fileName);
+					}
+				}
+				try {
+					searched.add(inf.getCanonicalPath());
+				} catch (IOException e) {
+						// Ignore
+				}
 			}
-			String joinedPath = new File(dir, fileName).toString();
-			return joinedPath;
+			System.err.printf("%s was not found\n", fileName);
+			if (dirs.length > 0) {
+				System.err.printf("Searched in:\n");
+				for (String dir : dirs) {
+					File dirf = new File(dir);
+					try {
+						String dirpath = dirf.getCanonicalPath();
+						System.err.printf("\t%s\n", dirpath);
+					} catch (IOException e) {
+						System.err.printf("\tpath error for %s\n", dir);
+					}
+				}
+			}
+			return "";			// Indicate as not found
 		}
 		return fileName;		// Already absolute path
 	}

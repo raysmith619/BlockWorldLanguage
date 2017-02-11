@@ -7,19 +7,22 @@ interface as close as possible to that of Bw.
 """
 import sys, traceback
 import re
+import inspect
 import java.util.ArrayList
 
 from BlockWorld import *
 import javax.media.j3d.Text3D
+import cmd
 
 class BlockW():
     axis = "axis"
     block = "block"
     cone = "cone"
     line = "line"
-    lightSource = "lightsource"
-    lookateye = "lookateye"
-    lookatcenter = "lookatCenter"
+    lightsource = lightSource = "lightsource"
+    lookateye = lookAtEye = "lookateye"
+    lookatcenter = lookAtCenter = "lookatCenter"
+    noop = "noop"
     pyramid = "pyramid"
     sphere = "sphere"
     text = "text"
@@ -33,7 +36,13 @@ class BlockW():
     PATH_UP = javax.media.j3d.Text3D.PATH_UP
     PATH_DOWN = javax.media.j3d.Text3D.PATH_DOWN
     
-    def __init__(self, bExec=None, trace=None):
+    """
+    bExec - pre-existing BlockWorld execution object
+    trace - pre-existing trace object
+    tr - string of comma separated trace settings tr= [tr=(name=level[,name=level]*]
+    """
+    
+    def __init__(self, bExec=None, trace=None, tr=None):
         if bExec != None:
             self.bExec = bExec
         else:
@@ -45,15 +54,19 @@ class BlockW():
             self.trace = trace
         else:
             self.trace = BwTrace()
-        """
-        Setup controls window, if not already in place
-        """
-        if bExec == None:
-            self.controls = BwControls(trace, self.bExec)
-            self.controls.setVisible(True)
-        else:
-            self.controls = bExec.getControls()     # Obtain current controls
 
+        if tr != None:
+            tracespecs = tr.split(",")
+            for tracespec in tracespecs:
+                if "=" in tracespec:
+                    (name, levelstr) = tracespec.split("=")
+                    level = int(levelstr)
+                else:
+                    name = tracespec
+                    level = 1
+                
+                self.trace.setLevel(name, level)  ### Coersion problem
+                
         self.parser = self.bExec.getParser()
         if self.parser == None:
             self.error("No parser")
@@ -73,16 +86,73 @@ class BlockW():
         stack_trace = traceback.format_exc()
         print("At:\n" + stack_trace)
         exit(1)    
-        
-    def add(self, name, *args):
+
+    """
+    name is the required graphic name
+    *args are for parameter function calls
+    **kwargs are for more bwif-like parameter=(values) which we may move to.
+    """
+            
+    def add(self, name, *args, **kwargs):
         cmd = self.setCmd()
         graphic_type = BwGraphic.str2type(name)
         if graphic_type == BwGraphic.Type.UNKNOWN:
             self.error("Unrecognized command type " + name)
         cmd.setGraphicType(graphic_type)
-        return self.addCmd(name="add")
+        """ Support point or pt### for points """
+        pat_pt = re.compile(r'^(pt\d*|point)$', re.IGNORECASE)    
+        for key in kwargs:
+            key = key.lower()
+            if key == "loc":
+                self.loc(*kwargs[key])
+            elif key == "color":
+                self.color(*kwargs[key])
+            elif key == "font":
+                self.font(*kwargs[key])
+            elif key == "lines":
+                self.lines(*kwargs[key])
+            elif key == "size":
+                args = kwargs[key]
+                if type(args) is tuple:
+                    self.size(*args)
+                else:
+                    self.size(args)
+            elif pat_pt.match(key):
+                self.point(*kwargs[key])
+            elif key == "txt":
+                self.txt(*kwargs[key])
+        self.addCmd(name="add")
+        return cmd
+    
+    """
+    Modify a pre-existing command
+    """        
+    def mod(self, cmd, **kwargs):
+        cmd = self.setCmd(cmd)
             
-
+        if "pt" in kwargs or "point" in kwargs:
+            cmd.clearPoints()   # All points change
+            
+        for key in kwargs:
+            key = key.lower()
+            if key == "loc":
+                self.loc(*kwargs[key])
+            elif key == "color":
+                self.color(*kwargs[key])
+            elif key == "font":
+                self.font(*kwargs[key])
+            elif key == "lines":
+                self.lines(*kwargs[key])
+            elif key == "size":
+                self.size(*kwargs[key])
+            elif key == "pt" or key == "point":
+                self.point(*kwargs[key])
+            elif key == "txt":
+                self.txt(*kwargs[key])
+                
+        cmd.modCmd()       # Modify this command
+        return cmd
+        
     """
     Set timelimit for all files in display lists
     """
@@ -107,8 +177,11 @@ class BlockW():
         try:
             if cmd != None:
                 self.bExec.display(cmd)
-            if cmds != None:
-                self.bExec.display(cmds)    
+            elif cmds != None:
+                self.bExec.display(cmds)
+            else:
+                """ From internal list """
+                self.bExec.display()    
         except:
             exc = sys.exc_info()
             if exc[1].message != None:
@@ -165,14 +238,16 @@ class BlockW():
             self.error("Invalid partial setting")
         #cmd.setIsPartial(setting)
 
+    def nop(self):
+        return self.add(BlockW.noop)            # TBD
     
     def pt(self, *values):      # Abbreviation
         self.point(self, *values)
      
     def point(self, *values):
         cmd = self.setCmd()
-        spec_list = self.vals2specList(*values)        
-        bwlocspec = self.mkLocationSpec(spec_list)
+        spec_array = self.vals2specArray(*values)        
+        bwlocspec = self.mkLocationSpec(spec_array)
         cmd.addPointSpec(bwlocspec)
     
     def lines(self, *values):
@@ -230,7 +305,6 @@ class BlockW():
                 cmd.setError("Unsupported cmd Type"
                              + name)
             
-        self.setCmdOpts()
         cmd.setComplete()
         if self.trace.traceInput():
             line = cmd.toString()
@@ -247,6 +321,28 @@ class BlockW():
         self.cmd = None
         self.optList = []
         return self.setCmd()
+    
+    
+    """
+    Include file, assumes .py if no extension
+    TBD: Can't seem to fetch globals from caller's frame
+    """
+    def include(self, incFile, globs=None):
+        if globs == None:
+            frames = inspect.stack()
+            caller_frame = frames[-1][0]
+            globs = caller_frame.f_globals
+        pat_with_ext = re.compile(r'\.[^.]*$')
+        if not pat_with_ext.match(incFile):
+            incFile += ".py"       # Add .py extension
+        incPath = self.trace.getIncludePath(incFile)
+        if incPath == "":
+            self.error("include file({}) was not found".format(incFile))
+            return False
+        execfile(incPath, globs)
+        return True
+
+            
     """
     Process input files:
         .py ==> python script
@@ -277,7 +373,11 @@ class BlockW():
     Process (Execute) standard python/Jython file
     """
     def procFilePy(self, inFile):
-        execfile(inFile)
+        inPath = self.trace.getSourcePath(inFile)
+        if inPath == "":
+            self.error("inFile({} was not found".format(inFile))
+            return False
+        execfile(inPath)
         return True
     
     """ 
@@ -333,30 +433,12 @@ class BlockW():
     Setup new command for adding, if necessary
     Returns cmd
     """
-    def setCmd(self):
+    def setCmd(self, cmd=None):
+        if cmd != None:
+            self.cmd = cmd      #Use given cmd, if one
         if self.cmd == None:
             self.cmd = self.mkCmd()
-            self.optList = []   # list of settings
         return self.cmd
-    
-    """
-    Set options collected for this command
-    """
-    def setCmdOpts(self):
-        cmd = self.cmd
-        for op in self.optList:
-            if op == "loc":
-                pass
-            elif op == "size":
-                pass
-            elif op == "pt" or "point":
-                pass
-            elif op == "lines":
-                pass
-            elif op == "txt":
-                pass
-            else:
-                cmd.error("Don't recognize option" + op)
 
 
     def setValue(self, name, value=None):

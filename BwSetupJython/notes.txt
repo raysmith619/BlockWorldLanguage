@@ -1,0 +1,25 @@
+notes:
+<type 'tuple'>: (0.8074649377804626, -3.8644042595899135, 1.0588550336439058)
+
+
+dict: {'color': (0, 0, 0)}
+
+dict: {'color': (0, 0, 0)}
+
+dict: {'color': (0, 0, 0)}
+dict: {'color': (0, 0, 0)}
+<type 'tuple'>: ((0, 0, 0),)
+
+        """
+        Setup controls window, if not already in place
+        """
+        if bExec == None:
+            self.controls = BwControls(trace, self.bExec)
+            self.controls.setVisible(True)
+        else:
+            self.controls = bExec.getControls()     # Obtain current controls
+
+            
+stringmap: {'BwException': <type 'BlockWorld.BwException'>, 'BwCmds': <type 'BlockWorld.BwCmds'>, 'BwLocationSpec': <type 'BlockWorld.BwLocationSpec'>, 'BwJava3dWindow': <type 'BlockWorld.BwJava3dWindow'>, 'BwSymTable': <type 'BlockWorld.BwSymTable'>, 'BwControls': <type 'BlockWorld.BwControls'>, 'sys': <module 'sys' (built-in)>, 'BwGraphic': <type 'BlockWorld.BwGraphic'>, 'BwSliderSpec': <type 'BlockWorld.BwSliderSpec'>, '__package__': None, 'BwSliderVar': <type 'BlockWorld.BwSliderVar'>, 'BlockW': <class BlockW.BlockW at 0x23>, 'BwTrace': <type 'BlockWorld.BwTrace'>, 'java': <java package java 0x24>, 'BwColorSpec': <type 'BlockWorld.BwColorSpec'>, 'BwRange': <type 'BlockWorld.BwRange'>, 'javax': <java package javax 0x25>, 'BwParser': <type 'BlockWorld.BwParser'>, 'HelloUniverse1': <type 'BlockWorld.HelloUniverse1'>, 'BwType': <type 'BlockWorld.BwType'>, 'BwCmd': <type 'BlockWorld.BwCmd'>, 'traceback': <module 'traceback' from 'C:\jython2.7.0\Lib\traceback$py.class'>, 'BwDisplay': <ty...
+
+stringmap: {'BwException': <type 'BlockWorld.BwException'>, 'BwCmds': <type 'BlockWorld.BwCmds'>, 'BwLocationSpec': <type 'BlockWorld.BwLocationSpec'>, 'BwJava3dWindow': <type 'BlockWorld.BwJava3dWindow'>, 'BwSymTable': <type 'BlockWorld.BwSymTable'>, 'BwControls': <type 'BlockWorld.BwControls'>, 'sys': <module 'sys' (built-in)>, 'BwGraphic': <type 'BlockWorld.BwGraphic'>, 'BwSliderSpec': <type 'BlockWorld.BwSliderSpec'>, '__package__': None, 'BwSliderVar': <type 'BlockWorld.BwSliderVar'>, 'BlockW': <class BlockW.BlockW at 0xf>, 'BwTrace': <type 'BlockWorld.BwTrace'>, 'java': <java package java 0x10>, 'BwColorSpec': <type 'BlockWorld.BwColorSpec'>, 'BwRange': <type 'BlockWorld.BwRange'>, 'javax': <java package javax 0x11>, 'BwParser': <type 'BlockWorld.BwParser'>, 'HelloUniverse1': <type 'BlockWorld.HelloUniverse1'>, 'BwType': <type 'BlockWorld.BwType'>, 'BwCmd': <type 'BlockWorld.BwCmd'>, 'traceback': <module 'traceback' from 'C:\\jython2.7.0\\Lib\\traceback$py.class'>, 'BwDisplay': <typ...            
