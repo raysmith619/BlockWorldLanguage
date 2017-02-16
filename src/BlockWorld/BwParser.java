@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import javax.media.j3d.Text3D;
+import javax.vecmath.Point3f;
 
 import BlockWorld.BwValue.BwValueType;
 /**
@@ -240,7 +241,7 @@ public class BwParser {
 		cmd.setComplete();
 		if (trace.traceInput()) {
 			System.out.printf("%s\n", cmd.toStringExtended());
-			if (cmd.getCmd_type() == BwCmdType.INCLUDE_FILE_END)
+			if (cmd.getCmdType() == BwCmdType.INCLUDE_FILE_END)
 				System.out.printf("\n");
 		}
 		return true;
@@ -1218,7 +1219,7 @@ public class BwParser {
 		if (!cmd.isComplete())
 			return false;		// Stop at first incomplete command
 
-		if (cmd.getCmd_type() == BwCmdType.QUIT_PROGRAM) {
+		if (cmd.getCmdType() == BwCmdType.QUIT_PROGRAM) {
 			return quitProgram(cmd);
 		}			
 			
@@ -1390,6 +1391,10 @@ public class BwParser {
 
 	public BwLocationSpec mkLocationSpec(int x, int y, int z) throws Exception {
 		return new BwLocationSpec(this.sT, x, y, z);
+	}
+
+	public BwLocationSpec mkLocationSpec(Point3f point) {
+		return new BwLocationSpec(this.sT, point);
 	}
 
 	public BwSizeSpec mkSizeSpec() {

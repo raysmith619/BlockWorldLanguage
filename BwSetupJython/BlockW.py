@@ -8,6 +8,8 @@ interface as close as possible to that of Bw.
 import sys, traceback
 import re
 import inspect
+import time
+
 import java.util.ArrayList
 
 from BlockWorld import *
@@ -76,7 +78,7 @@ class BlockW():
             
         self.timeLimit = -1         # No limit
         self.newCmd()
-
+        self.timeBetween = 0        # Time between files in runlist
 
     """
     General error message
@@ -110,7 +112,11 @@ class BlockW():
             elif key == "font":
                 self.font(*kwargs[key])
             elif key == "lines":
-                self.lines(*kwargs[key])
+                args = kwargs[key]
+                if type(args) is tuple:
+                    self.lines(*args)
+                else:
+                    self.lines(args)
             elif key == "size":
                 args = kwargs[key]
                 if type(args) is tuple:
@@ -119,7 +125,7 @@ class BlockW():
                     self.size(args)
             elif pat_pt.match(key):
                 self.point(*kwargs[key])
-            elif key == "txt":
+            elif key == "text" or key == "txt":
                 self.txt(*kwargs[key])
         self.addCmd(name="add")
         return cmd
@@ -142,12 +148,16 @@ class BlockW():
             elif key == "font":
                 self.font(*kwargs[key])
             elif key == "lines":
-                self.lines(*kwargs[key])
+                args = kwargs[key]
+                if type(args) is tuple:
+                    self.lines(*args)
+                else:
+                    self.lines(args)
             elif key == "size":
                 self.size(*kwargs[key])
             elif key == "pt" or key == "point":
                 self.point(*kwargs[key])
-            elif key == "txt":
+            elif key == "text" or key == "txt":
                 self.txt(*kwargs[key])
                 
         cmd.modCmd()       # Modify this command
@@ -159,6 +169,13 @@ class BlockW():
     def setTimeLimit(self, timeLimit):
         self.timeLimit = timeLimit
         self.bExec.setTimeLimit(timeLimit);
+        
+    """
+    Set time between displays
+    Esentially the time displayed if display just stays there
+    """
+    def setTimeBetween(self, time):
+        self.timeBetween = time
         
             
     def slider(self, *values):
@@ -252,10 +269,10 @@ class BlockW():
     
     def lines(self, *values):
         cmd = self.setCmd()
-        spec_list = self.vals2specList(*values)        
-        if spec_list.len != 1:
-            self.error("lines no single arg")
-        cmd.setLineWidth(spec_list[0])
+        spec_array = self.vals2specArray(*values)        
+        if len(spec_array) != 1:
+            self.error("lines not a single arg")
+        cmd.setLineWidth(spec_array[0])
             
     def txt(self, *values):    # Can't use text
         cmd = self.setCmd()
@@ -342,7 +359,15 @@ class BlockW():
         execfile(incPath, globs)
         return True
 
-            
+
+    """
+    Make command a empty
+        1. keeping cmd entry
+        2. Removing graphic, e.g. line
+    """
+    def mkEmpty(self, cmd):
+        cmd.mkEmpty()
+    
     """
     Process input files:
         .py ==> python script
@@ -426,6 +451,8 @@ class BlockW():
                 print("Running File {}: {}".format(fileno, line)) # Removing leading and trailing whitespace    
                 if not self.procFilePy(line):
                     return False
+                if self.timeBetween > 0:
+                    time.sleep(self.timeBetween)
         return True
     
     
@@ -440,6 +467,11 @@ class BlockW():
             self.cmd = self.mkCmd()
         return self.cmd
 
+    """
+    Erase cmd's graphic, otherwise leave the command unchanged
+    """
+    def setEmpty(self, cmd):
+        return self.bExec.setEmpty(cmd)
 
     def setValue(self, name, value=None):
         if value == None:

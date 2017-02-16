@@ -11,7 +11,8 @@ bW.slider("winH", 0, 900, 2000)
 bW.slider("winW", 0, 1400, 2000)
 bW.add(bW.window, size=("winW", "winH"))
 tdly = 2         # Time between displays
-npoints = 100    # Number of points to display
+print("Number of points shortened because of time limitations")
+npoints = 10    # Number of points to display
 points = []     # array of points to create/display
 maxval = 4.     # Maximum (x,y,z) dimensional value
 minval = -maxval    # Minimum (x,y,z) dimensional value

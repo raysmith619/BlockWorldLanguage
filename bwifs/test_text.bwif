@@ -1,6 +1,6 @@
 //test_text.bwif
 add axis;
-slider(tsize,0,1,10);
+slider(tsize,0,5,10);
 slider(t_x,0,1,10);
 slider(t_y,0,1,10);
 slider(t_z,0,1,10);

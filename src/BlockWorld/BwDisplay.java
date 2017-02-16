@@ -141,7 +141,7 @@ public class BwDisplay extends JFrame implements MouseListener{
 	public boolean displayCmd(BwCmd cmd) throws BwException {
 		if (trace.traceDebug())
 			System.out.printf("in displayCmd(cmd)\n");
-		switch (cmd.getCmd_type()) {
+		switch (cmd.getCmdType()) {
 			case DISPLAY_SCENE:		// Display sceen
 				break;
 				
@@ -150,6 +150,9 @@ public class BwDisplay extends JFrame implements MouseListener{
 				
 			case DELETE_OBJECT:		// Delete object
 				break;
+				
+			case EMPTY:				// empty object - remove graphic, if one
+				return setEmpty(cmd);
 				
 			case MOVE_OBJECT:		// Move object
 				break;
@@ -367,18 +370,23 @@ public class BwDisplay extends JFrame implements MouseListener{
 		tg.addChild(group);
 
 		BranchGroup gg = new BranchGroup();		// Wrap graphic
-		cmd.setBranchGroup(gg);
+		//cmd.setBranchGroup(gg);				// Keep branch group with cmd
+		cmd.setBranchGroup(this.branchGroup);
 		gg.addChild(tg);
 		gg.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
 		gg.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
 		gg.setCapability(BranchGroup.ALLOW_DETACH);		
 	    int old_grid = cmd.getGrid();			// Get old id, if any
+	    BranchGroup cmdGroup = cmd.getBranchGroup();
 	    if (old_grid != BwCmd.GRID_NONE) {
-	    	this.branchGroup.removeChild(old_grid);
-	    	this.branchGroup.insertChild(gg, old_grid);
+	    	//this.branchGroup.removeChild(old_grid);
+	    	//this.branchGroup.insertChild(gg, old_grid);
+	    	cmdGroup.removeChild(old_grid);
+	    	cmdGroup.insertChild(gg, old_grid);
 	    } else {
-	    	this.branchGroup.addChild(gg);
-	    	int nchild = this.branchGroup.numChildren();
+	    	cmdGroup.addChild(gg);
+	    	//int nchild = cmdGroup.numChildren();
+	    	int nchild = cmdGroup.numChildren();
 	    	int grid = nchild-1;
 	    	cmd.setGrid(grid);
 	    }
@@ -825,6 +833,27 @@ public class BwDisplay extends JFrame implements MouseListener{
 		return true;
 	}
 
+	
+	/**
+	 * Erase cmd display
+	 * Otherwise leave the command unchanged
+	 */
+	public boolean setEmpty(BwCmd cmd) {
+	    int old_grid = cmd.getGrid();			// Get old id, if any
+	    if (trace.traceGraphics())
+	    	System.out.printf("BwDisplay:setEmpty: old_grid=%d\n", old_grid);
+	    if (old_grid != BwCmd.GRID_NONE) {
+	    	if (this.branchGroup != null) {
+	    	    if (trace.traceGraphics())
+	    	    	System.out.printf("Removing old_grid:%d\n", old_grid);
+	    		this.branchGroup.removeChild(old_grid);
+	    		cmd.setGrid(BwCmd.GRID_NONE);
+	    	} else {
+	    		System.out.printf("BwDisplay:branchGroup is null\n");
+	    	}
+	    }
+	    return true;
+	}
 	/**
 	 * Add line object to display
 	 * A one or more segmented connected line

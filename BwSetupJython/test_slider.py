@@ -5,7 +5,7 @@ from BlockW import *
 
 trace = BwTrace()
 trace.setAll()			
-bW = BlockW(trace=trace)
+bW = BlockW(tr="input")
 bW.add(BlockW.axis)
 
 bW.slider("tsize",0,1,10)

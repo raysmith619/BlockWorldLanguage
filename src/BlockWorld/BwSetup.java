@@ -226,7 +226,7 @@ public class BwSetup extends Application {
 		
 								// Default - display if not already displayed
 		if (bExec.size() > 0
-				&& bExec.getCmd(bExec.size()-1).getCmd_type() != BwCmdType.DISPLAY_SCENE) {
+				&& bExec.getCmd(bExec.size()-1).getCmdType() != BwCmdType.DISPLAY_SCENE) {
 			BwCmd cmd = parser.mkCmd(BwCmdType.DISPLAY_SCENE);
 			cmd.setComplete();
 			bExec.addCmd(cmd);
