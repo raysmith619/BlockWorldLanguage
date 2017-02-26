@@ -25,7 +25,7 @@ public class BlockWJ {
     public static final String axis = "axis";
     public static final String block = "block";
     public static final String cone = "cone";
-    public static final String line = "line";
+    public final String line = "line";
     public static final String lightsource = "lightsource";
     public static final String lightSource = lightsource;
     public static final String lookateye = "lookateye";
@@ -34,7 +34,7 @@ public class BlockWJ {
     public static final String lookAtCenter = lookatcenter;
     public static final String noop = "noop";
     public static final String pyramid = "pyramid";
-    public static final String sphere = "sphere";;
+    public final String sphere = "sphere";;
     public static final String text = "text";
     public static final String text2d = "text2d";
     public static final String window = "window";
@@ -46,44 +46,66 @@ public class BlockWJ {
     public static final int PATH_UP = javax.media.j3d.Text3D.PATH_UP;
     public static final int PATH_DOWN = javax.media.j3d.Text3D.PATH_DOWN;
 
+    
+    /**
+     * Setup block world as default
+     * @throws Exception
+     */
     public BlockWJ() throws Exception {
-        this.bExec = new BwExec(new BwTrace());
-
-        this.timeLimit = -1;         // No limit
-        this.newCmd();
-        this.timeBetween = 0;        // Time between files in runlist
+    	setup(null, null);		
     }
-        
+
+    /**
+     * Setup bExec, if not new or if trace string present
+     * @param bExec pre-existing bExec if not null
+     * @param tr - trace settings, if not null
+     * @throws Exception 
+     */
+    private void setup(BwExec bExec, String tr) throws Exception {
+    	if (bExec != null) {
+    		this.bExec = bExec;
+    		this.trace = bExec.getTrace();
+    	} else {
+   	        this.trace = new BwTrace();		// Setup default trace levels
+    		if (tr != null) {
+     	        String[] tracespecs = tr.split(",");
+    	        for (String tracespec : tracespecs) {
+    	            String name = tracespec;
+    	            String levelstr = "1";
+    	            int level = 1;  
+    	            if (tracespec.contains("=")) {
+    	                String[] parts= tracespec.split("=");
+    	                level = Integer.parseInt(levelstr);
+    	            } else {
+    	                name = tracespec;
+    	                level = 1;
+    	            }
+    	            this.trace.setLevel(name, level);  /// Coersion problem
+    	        }
+    		}
+            this.bExec = new BwExec(this.trace);    		
+    	}
+    this.parser = this.bExec.getParser();
+    this.symTab = this.parser.getSymTable();
+    this.timeLimit = -1;         // No limit
+    this.newCmd();
+    this.timeBetween = 0;        // Time between files in runlist
+    }
+    
+    
     /**
      * bExec - pre-existing BlockWorld execution object
      */
     
     public BlockWJ(BwExec bExec) throws Exception {
-        this();
-        this.bExec = bExec;     // Waste of initial bWexe
+    	setup(bExec, null);
     }
 
     /**
      * tr - string of comma separated trace settings tr= [tr=(name=level[,name=level]*]
      */
     public BlockWJ(String tr) throws Exception {
-        this();
-        BwTrace trace = new BwTrace();
-        String[] tracespecs = tr.split(",");
-        for (String tracespec : tracespecs) {
-            String name = tracespec;
-            String levelstr = "1";
-            int level = 1;  
-            if (tracespec.contains("=")) {
-                String[] parts= tracespec.split("=");
-                level = Integer.parseInt(levelstr);
-            } else {
-                name = tracespec;
-                level = 1;
-            }
-            trace.setLevel(name, level);  /// Coersion problem
-        }
-        this.bExec = new BwExec(trace);     // Waste of initial bWexe
+    	setup(null, tr);
     }
                                                               
                                                               
@@ -105,11 +127,11 @@ public class BlockWJ {
     /*
     To replace Python-like name=values we revert
     to our original name(values), in which the name Function
-    does the work.  Note we do not use the return values
+    does the work.  Note that the "current" cmd is the next cmd
+    not the cmd returned.
     */
-    public BwCmd add(String name, Boolean...params) {
-        BwCmd cmd = this.setCmd();
-        cmd.modCmd();       // Modify this command
+    public BwCmd add(String obj_name, Boolean...params) {
+        BwCmd cmd = addCmd("add", obj_name);
         return cmd;
     }
     
@@ -147,7 +169,7 @@ public class BlockWJ {
         String var_name = name;
         BwSliderSpec slider_spec = this.mkSliderSpec(name, settings);
         cmd.setSlider(slider_spec);
-        this.addCmd(name="slider");
+        this.addCmd("slider");
     }
     
     
@@ -158,6 +180,21 @@ public class BlockWJ {
     public void display(BwCmd cmd) {
         this.bExec.display(cmd);
     }
+
+    /**
+     * Delay seconds
+     * @param cmds
+     * @throws InterruptedException 
+     */
+    public void delay(float delay_sec) {
+	    try {
+			Thread.sleep((long) (delay_sec*1000.));
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    }
+    
     
     public void display(BwCmd[] cmds) {
         this.bExec.display(cmds);
@@ -188,6 +225,7 @@ public class BlockWJ {
         color_spec.setRed(red);
         color_spec.setGreen(green);
         color_spec.setBlue(blue);
+        cmd.setColor(color_spec);
         return true;
     }                
 
@@ -197,6 +235,7 @@ public class BlockWJ {
         color_spec.setRed(cpoint.x);
         color_spec.setGreen(cpoint.y);
         color_spec.setBlue(cpoint.z);
+        cmd.setColor(color_spec);
         return true;
     }                
         
@@ -296,16 +335,21 @@ public class BlockWJ {
     Support functions
     */
 
-    public BwCmd addCmd(String name) {
+    public BwCmd addCmd(String cmd_name, String obj_name) {
         BwCmd cmd = this.setCmd();
-        if (name != null) {
-            BwCmdType cmd_type = cmd.name2type(name);
-            if (cmd_type != BwCmdType.UNKNOWN)
-                cmd.setCmdType(cmd_type);
-            else
-                cmd.setError("Unsupported cmd Type"
-                                 + name);
-        }    
+        if (cmd_name == null) {
+        	cmd_name = "add";
+        }
+        BwCmdType cmd_type = cmd.name2type(cmd_name);
+        if (cmd_type != BwCmdType.UNKNOWN)
+            cmd.setCmdType(cmd_type);
+        else
+            cmd.setError("Unsupported cmd Type"
+                             + cmd_name);
+        if (obj_name != null) {
+        	BwGraphic.Type gtype = BwGraphic.str2type(obj_name);
+        	cmd.setGraphicType(gtype);
+        }
         cmd.setComplete();
         if (this.trace.traceInput()) {
             String line = cmd.toString();
@@ -317,7 +361,10 @@ public class BlockWJ {
         return cmd;
     }          // Return current command for possible augmenting
 
-
+    public BwCmd addCmd(String cmd_name) {
+    	return addCmd(cmd_name, null);
+    }
+    
     public BwCmd addCmd() {
         return addCmd(null);
     }
@@ -495,9 +542,14 @@ public class BlockWJ {
         this.cmd = cmd;          // Use given cmd, if one
         return this.cmd;
     }
-    
+
+    /**
+     * Use current command if one, else setup new command
+     * @return current command
+     */
     public BwCmd setCmd() {
-        this.cmd = this.mkCmd();
+    	if (this.cmd == null)
+    		this.cmd = this.mkCmd();
         return this.cmd;
     }
 
@@ -623,11 +675,11 @@ public class BlockWJ {
     }
     
     
+    private BwTrace trace;			// Diagnostic trace control and properties
     private BwCmd cmd;
     private BwExec bExec;
     private BwParser parser;
     private BwSymTable symTab;
-    private BwTrace trace;
     private float timeLimit;
     private float timeBetween;
 }

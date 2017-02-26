@@ -120,7 +120,9 @@ public class BwExec {
 				int n = j + 1;
 				BwCmd cmd = cmds[j];
 				if (trace.traceExecute()) {
-					System.out.printf("%3d: %s\n", cmd.getSrcLineNo(), cmd.toString());
+					int lineno = cmd.getSrcLineNo();
+					String cmd_str =  cmd.toString();
+					System.out.printf("%3d: %s\n", lineno, cmd_str);
 					try {
 						System.out.printf("%s\n", cmd.toStringExtended());
 					} catch (BwException e) {
@@ -376,6 +378,15 @@ public class BwExec {
 		return "UNKNOWN";
 	}
 
+	/**
+	 * Get trace object
+	 * @return trace object
+	 */
+	public BwTrace getTrace() {
+		return this.trace;
+	}
+
+	
 	/**
 	 * Set time limit
 	 */
