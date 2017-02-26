@@ -6,6 +6,7 @@ package BlockWorld;
 import java.util.Vector;
 
 import javax.media.j3d.BranchGroup;
+import javax.vecmath.Point3f;
 
 /**
  * @author raysm
@@ -75,7 +76,7 @@ public class BwCmd {
 	/**
 	 * @return the cmd_type
 	 */
-	public BwCmdType getCmd_type() {
+	public BwCmdType getCmdType() {
 		return cmdType;
 	}
 
@@ -98,6 +99,27 @@ public class BwCmd {
 		this.error = true;
 		this.errorDescription = description;
 	}
+	
+	
+	/**
+	 * Erase cmd display
+	 * Otherwise leave the command unchanged
+	 */
+	public boolean setEmpty() {
+	    int old_grid = getGrid();			// Get old id, if any
+	    System.out.printf("cmd.setEmpty: old_grid=%d\n", old_grid);
+	    if (old_grid != BwCmd.GRID_NONE) {
+	    	if (this.branchGroup != null) {
+	    		System.out.printf("Removing old_grid:%d\n", old_grid);
+	    		this.branchGroup.removeChild(old_grid);
+	    		setGrid(BwCmd.GRID_NONE);
+	    	} else {
+	    		System.out.printf("this.branchGroup is null\n");
+	    	}
+	    }
+	    return true;
+	}
+	
 	/**
 	 * Check if command is complete
 	 * @return true if complete
@@ -124,6 +146,23 @@ public class BwCmd {
 		return this.errorDescription;
 	}
 
+	
+	/**
+	 * short cuts to simplify value passing
+	 */
+	public BwValue mkValue(float val) {
+		return new BwValue(this.sT, val);
+	}
+
+	public BwValue mkValue(double val) {
+		return new BwValue(this.sT, val);
+	}
+
+	public BwValue mkValue(int val) {
+		return new BwValue(this.sT, val);
+	}
+
+	
 	/**
 	 * Modify this command display
 	 * @return
@@ -237,6 +276,18 @@ public class BwCmd {
 			throws BwException {
 		BwLocationSpec loc_spec = new BwLocationSpec(
 				this.sT,x,y,z);
+		addPointSpec(loc_spec);
+	}
+
+	/**
+	 * Add point given a point
+	 * Used for Jython front end
+	 * @throws BwException 
+	 */
+	public void addPoint(Point3f point)
+			throws BwException {
+		BwLocationSpec loc_spec = new BwLocationSpec(
+				this.sT, point);
 		addPointSpec(loc_spec);
 	}
 	
@@ -669,6 +720,18 @@ public class BwCmd {
 		this.lineWidth = lineWidth;
 	}
 
+	public void setLineWidth(float lineWidth) {
+		this.lineWidth = mkValue(lineWidth);
+	}
+
+	public void setLineWidth(double lineWidth) {
+		this.lineWidth = mkValue(lineWidth);
+	}
+
+	public void setLineWidth(int lineWidth) {
+		this.lineWidth = mkValue(lineWidth);
+	}
+
 	/**
 	 * @param srcFileName the srcFileName to set
 	 */
@@ -806,6 +869,13 @@ public class BwCmd {
 		return isPartial;
 	}
 
+
+	/**
+	 * @return the branchGroup
+	 */
+	public BranchGroup getBranchGroup() {
+		return branchGroup;
+	}
 
 	/**
 	 * @param isPartial the isPartial to set

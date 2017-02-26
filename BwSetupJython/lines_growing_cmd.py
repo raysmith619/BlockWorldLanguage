@@ -8,7 +8,7 @@ from BlockW import *
 bW = BlockW()
 
 tdly = .1         # Time between displays
-npoints = 1000    # Number of points to display
+npoints = 100    # Number of points to display
 points = []     # array of points to create/display
 maxval = 4.     # Maximum (x,y,z) dimensional value
 minval = -maxval    # Minimum (x,y,z) dimensional value

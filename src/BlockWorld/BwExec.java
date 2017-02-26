@@ -53,9 +53,11 @@ public class BwExec {
 	 *
 	 */
 	public void addCmd(BwCmd cmd) {
-		System.out.println("addCmd:" + cmd);
-		if (cmd.getCmd_type() == BwCmdType.SLIDER) {
-			System.out.println("addCmd:" + "SLIDER");
+		if (this.trace.traceExecute(2))
+			System.out.println("addCmd:" + cmd);
+		if (cmd.getCmdType() == BwCmdType.SLIDER) {
+			if (this.trace.traceExecute(2))
+				System.out.println("addCmd:" + "SLIDER");
 			setupControls();
 		}
 		this.bCmds.addCmd(cmd);
@@ -118,7 +120,9 @@ public class BwExec {
 				int n = j + 1;
 				BwCmd cmd = cmds[j];
 				if (trace.traceExecute()) {
-					System.out.printf("%3d: %s\n", cmd.getSrcLineNo(), cmd.toString());
+					int lineno = cmd.getSrcLineNo();
+					String cmd_str =  cmd.toString();
+					System.out.printf("%3d: %s\n", lineno, cmd_str);
 					try {
 						System.out.printf("%s\n", cmd.toStringExtended());
 					} catch (BwException e) {
@@ -330,6 +334,16 @@ public class BwExec {
 		this.errorDescription = description;
 	}
 
+	
+	/**
+	 * Erase cmd display
+	 * Otherwise leave the command unchanged
+	 */
+	public boolean setEmpty(BwCmd cmd) {
+		return this.bD.setEmpty(cmd);
+	}
+
+	
 	public void update(String name, double value) {
 		System.out.printf("%s has been updated to %g\n", name, value);
 		setSymValue(name, value);
@@ -364,6 +378,15 @@ public class BwExec {
 		return "UNKNOWN";
 	}
 
+	/**
+	 * Get trace object
+	 * @return trace object
+	 */
+	public BwTrace getTrace() {
+		return this.trace;
+	}
+
+	
 	/**
 	 * Set time limit
 	 */

@@ -65,10 +65,14 @@ while i < length:
 		trace_levels = trace_spec.split(",")
 		for trace_level in trace_levels:
 			trace.setLevel(trace_level);
-	elif re.match(r"^(timeLimit|tl)$", opt):
+	elif re.match(r"^(timeLimit|tl)$", opt, re.IGNORECASE):
 		timeLimit = float(parms[i])
 		i += 1
 		bW.setTimeLimit(timeLimit)		# for all types of files
+	elif re.match(r"^(timeBetween|tb)$", opt, re.IGNORECASE):
+		time = float(parms[i])
+		i += 1
+		bW.setTimeBetween(time)		# for all types of files
 				
 	
 	

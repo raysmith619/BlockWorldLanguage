@@ -118,6 +118,14 @@ public class BwLocationSpec {
 		}
 	}
 	
+	public BwLocationSpec(BwSymTable sT, Point3f point) {
+		this(sT);
+		this.x.setValue(point.x);
+		this.y.setValue(point.y);
+		this.z.setValue(point.z);
+	}
+
+
 	/**
 	 * @return the x
 	 */

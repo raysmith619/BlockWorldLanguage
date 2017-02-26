@@ -79,6 +79,9 @@ public class BwDisplay extends JFrame implements MouseListener{
 		canvas.addMouseListener(this);
 		+*/
 		// add the group of objects to the Universe
+		this.branchGroup.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
+		this.branchGroup.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
+		this.branchGroup.setCapability(BranchGroup.ALLOW_DETACH);
 		this.universe.addBranchGraph(this.branchGroup);
 	}
 	
@@ -141,7 +144,7 @@ public class BwDisplay extends JFrame implements MouseListener{
 	public boolean displayCmd(BwCmd cmd) throws BwException {
 		if (trace.traceDebug())
 			System.out.printf("in displayCmd(cmd)\n");
-		switch (cmd.getCmd_type()) {
+		switch (cmd.getCmdType()) {
 			case DISPLAY_SCENE:		// Display sceen
 				break;
 				
@@ -150,6 +153,9 @@ public class BwDisplay extends JFrame implements MouseListener{
 				
 			case DELETE_OBJECT:		// Delete object
 				break;
+				
+			case EMPTY:				// empty object - remove graphic, if one
+				return setEmpty(cmd);
 				
 			case MOVE_OBJECT:		// Move object
 				break;
@@ -307,6 +313,7 @@ public class BwDisplay extends JFrame implements MouseListener{
 		return vector;
 	}
 
+	
 	/**
 	 * Place graphic primative in display region
 	 * @param cmd - annotated with graphics info to facilitate updates
@@ -322,9 +329,29 @@ public class BwDisplay extends JFrame implements MouseListener{
 			BwColorSpec bwcolor) throws BwException {
 		if (!colorGraphic(prim, bwcolor))
 			return false;
-		BranchGroup group = new BranchGroup();
-		group.addChild(prim);
-		return placeGraphic(cmd, group, loc);
+		////BranchGroup group = new BranchGroup();
+		////group.addChild(prim);
+		////return placeGraphic(cmd, group, loc);
+		return placeGraphic(cmd, prim, loc);
+	}
+
+	
+	/**
+	 * Place graphic primative in display region
+	 *  Assumes color already set in prim
+	 * @param cmd - annotated with graphics info to facilitate updates
+	 * @param prim - primitive graphic object
+	 * @param loc - object location in bw terms
+	 * @return true iff success
+	 */
+	public boolean placeGraphic(
+			BwCmd cmd,
+			Primitive prim,
+			BwLocationSpec loc
+			) throws BwException {
+		BranchGroup prim_group = new BranchGroup();
+		prim_group.addChild(prim);
+		return placeGraphic(cmd, prim_group, loc);
 	}
 
 	
@@ -365,34 +392,12 @@ public class BwDisplay extends JFrame implements MouseListener{
 	    transform.setTranslation(vector);
 		tg.setTransform(transform);
 		tg.addChild(group);
-
 		BranchGroup gg = new BranchGroup();		// Wrap graphic
-		cmd.setBranchGroup(gg);
+		//cmd.setBranchGroup(gg);				// Keep branch group with cmd
+		cmd.setBranchGroup(this.branchGroup);
 		gg.addChild(tg);
-		gg.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
-		gg.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
-		gg.setCapability(BranchGroup.ALLOW_DETACH);		
-	    int old_grid = cmd.getGrid();			// Get old id, if any
-	    if (old_grid != BwCmd.GRID_NONE) {
-	    	this.branchGroup.removeChild(old_grid);
-	    	this.branchGroup.insertChild(gg, old_grid);
-	    } else {
-	    	this.branchGroup.addChild(gg);
-	    	int nchild = this.branchGroup.numChildren();
-	    	int grid = nchild-1;
-	    	cmd.setGrid(grid);
-	    }
-		
-	    /**
-	     * For debugging purposes place small cube in center
-	     *
-	    BranchGroup contents = new BranchGroup();	// TFD
-	    contents.addChild(new ColorCube(0.25));	// TFD
-	    this.branchGroup.addChild(contents);		// TFD
-	    */
 
-		
-		return true;
+		return placeGraphic(cmd, gg);
 	}
 
 	/**
@@ -825,6 +830,27 @@ public class BwDisplay extends JFrame implements MouseListener{
 		return true;
 	}
 
+	
+	/**
+	 * Erase cmd display
+	 * Otherwise leave the command unchanged
+	 */
+	public boolean setEmpty(BwCmd cmd) {
+	    int old_grid = cmd.getGrid();			// Get old id, if any
+	    if (trace.traceGraphics())
+	    	System.out.printf("BwDisplay:setEmpty: old_grid=%d\n", old_grid);
+	    if (old_grid != BwCmd.GRID_NONE) {
+	    	if (this.branchGroup != null) {
+	    	    if (trace.traceGraphics())
+	    	    	System.out.printf("Removing old_grid:%d\n", old_grid);
+	    		this.branchGroup.removeChild(old_grid);
+	    		cmd.setGrid(BwCmd.GRID_NONE);
+	    	} else {
+	    		System.out.printf("BwDisplay:branchGroup is null\n");
+	    	}
+	    }
+	    return true;
+	}
 	/**
 	 * Add line object to display
 	 * A one or more segmented connected line
